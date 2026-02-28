@@ -1,27 +1,27 @@
-  import React from 'react';
-  import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-  import './App.css';
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import './app.css';
 
-  import Login from './login/Login';
-  import Home from './home/Home';
-  import SignUp from './sign-up/SignUp';
+import Login from './login/login';
+import Home from './home/home';
+import SignUp from './sign-up/signup';
 
-  console.log('✅ App.tsx carregado');
+console.log('✅ App.tsx carregado');
 
-  const App: React.FC = () => {
-    return (
-      <Router>
-        <Routes>
-          <Route path="/" element={<Navigate to="/login" replace />} />
+const App: React.FC = () => {
+  return (
+    <Router>
+      <Routes>
+        <Route path="/" element={<Navigate to="/login" replace />} />
 
-          <Route path="/login" element={<Login />} />
-          <Route path="/home" element={<Home />} />
-          <Route path="/sign-up" element={<SignUp />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/home" element={<Home />} />
+        <Route path="/sign-up" element={<SignUp />} />
 
-          <Route path="*" element={<h1>404 - Página não encontrada</h1>} />
-        </Routes>
-      </Router>
-    );
-  };
+        <Route path="*" element={<h1>404 - Página não encontrada</h1>} />
+      </Routes>
+    </Router>
+  );
+};
 
-  export default App;
+export default App;
