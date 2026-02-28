@@ -1,0 +1,116 @@
+/* Reset */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* Apenas a tela de login */
+#page {
+    position: fixed;          /* força ocupar tela inteira */
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: linear-gradient(135deg, #151551 0%, #2d2d8f 100%);
+}
+
+/* Container principal */
+#login-container {
+    width: 90%;
+    max-width: 900px;
+    height: auto;
+    min-height: 450px;
+    background-color: white;
+    border-radius: 20px;
+    display: flex;
+    overflow: hidden;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.25);
+}
+
+/* Lado esquerdo */
+#left-container {
+    width: 55%;
+    padding: 50px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+#left-container h2 {
+    font-size: 30px;
+    color: #151551;
+    margin-bottom: 30px;
+    text-align: center;
+}
+
+/* Inputs */
+#form-login input {
+    width: 100%;
+    padding: 12px;
+    margin-bottom: 15px;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+    font-size: 14px;
+}
+
+#form-login input:focus {
+    outline: none;
+    border-color: #151551;
+    box-shadow: 0 0 8px rgba(21, 21, 81, 0.3);
+}
+
+/* Botão */
+#form-login button {
+    width: 100%;
+    padding: 12px;
+    border-radius: 8px;
+    border: none;
+    background-color: #151551;
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+#form-login button:hover {
+    background-color: #1f1fa8;
+}
+
+/* Lado direito */
+#right-container {
+    width: 45%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 40px;
+}
+
+/* Logo */
+.login-logo {
+    width: 80%;
+    max-width: 280px;
+    object-fit: contain;
+}
+
+/* RESPONSIVO */
+@media (max-width: 768px) {
+    #login-container {
+        flex-direction: column;
+        width: 95%;
+        border-radius: 15px;
+    }
+
+    #left-container,
+    #right-container {
+        width: 100%;
+        padding: 30px;
+    }
+
+    .login-logo {
+        width: 150px;
+    }
+}
