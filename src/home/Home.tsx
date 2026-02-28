@@ -110,7 +110,7 @@ const Home = () => {
   };
 
   const cadastrarCliente = async () => {
-    const response = await fetch('http://localhost:3000/api/client', {
+    const response = await fetch(`${(import.meta as any).env.VITE_API_URL}/user/login`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
