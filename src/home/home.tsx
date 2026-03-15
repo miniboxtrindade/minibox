@@ -19,6 +19,7 @@ interface Transacao {
 const API_URL = import.meta.env.VITE_API_URL;
 
 const Home = () => {
+
   const navigate = useNavigate();
   const token = Cookies.get('token');
 
@@ -34,14 +35,15 @@ const Home = () => {
     navigate('/login');
   };
 
+  const definirValorRapido = (v: number) => {
+    setValor(String(v));
+  };
+
   const buscarHistorico = async () => {
     try {
-      const response = await fetch(
-        `${API_URL}/api/client/${codigoBusca}/history`,
-        {
-          headers: { Authorization: `Bearer ${token}` }
-        }
-      );
+      const response = await fetch(`${API_URL}/api/client/${codigoBusca}/history`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
 
       const data = await response.json();
 
@@ -50,6 +52,7 @@ const Home = () => {
       } else {
         setHistorico([]);
       }
+
     } catch {
       console.log('Erro ao buscar histórico');
     }
@@ -57,12 +60,10 @@ const Home = () => {
 
   const buscarCliente = async () => {
     try {
-      const response = await fetch(
-        `${API_URL}/api/client/${codigoBusca}`,
-        {
-          headers: { Authorization: `Bearer ${token}` }
-        }
-      );
+
+      const response = await fetch(`${API_URL}/api/client/${codigoBusca}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
 
       const data = await response.json();
 
@@ -74,24 +75,29 @@ const Home = () => {
         setCliente(null);
         setHistorico([]);
       }
+
     } catch {
       alert('Erro ao buscar cliente');
     }
   };
 
   const recarregar = async () => {
+
+    if (!valor) {
+      alert("Digite um valor");
+      return;
+    }
+
     try {
-      const response = await fetch(
-        `${API_URL}/api/client/${codigoBusca}/recharge`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`
-          },
-          body: JSON.stringify({ valor: Number(valor) })
-        }
-      );
+
+      const response = await fetch(`${API_URL}/api/client/${codigoBusca}/recharge`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({ valor: Number(valor) })
+      });
 
       if (!response.ok) {
         const data = await response.json();
@@ -100,24 +106,29 @@ const Home = () => {
 
       setValor('');
       buscarCliente();
+
     } catch {
       alert('Erro ao recarregar saldo');
     }
   };
 
   const debitar = async () => {
+
+    if (!valor) {
+      alert("Digite um valor");
+      return;
+    }
+
     try {
-      const response = await fetch(
-        `${API_URL}/api/client/${codigoBusca}/debit`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`
-          },
-          body: JSON.stringify({ valor: Number(valor) })
-        }
-      );
+
+      const response = await fetch(`${API_URL}/api/client/${codigoBusca}/debit`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({ valor: Number(valor) })
+      });
 
       if (!response.ok) {
         const data = await response.json();
@@ -126,13 +137,16 @@ const Home = () => {
 
       setValor('');
       buscarCliente();
+
     } catch {
       alert('Erro ao debitar saldo');
     }
   };
 
   const cadastrarCliente = async () => {
+
     try {
+
       const response = await fetch(`${API_URL}/api/client`, {
         method: 'POST',
         headers: {
@@ -154,12 +168,14 @@ const Home = () => {
       } else {
         alert(data.message || 'Erro ao cadastrar cliente');
       }
+
     } catch {
       alert('Erro de conexão com o servidor');
     }
   };
 
   const exportarExcel = () => {
+
     if (!historico.length) {
       alert('Sem histórico para exportar');
       return;
@@ -180,6 +196,7 @@ const Home = () => {
   };
 
   return (
+
     <div className="home-page">
 
       <nav id="home-bar">
@@ -196,27 +213,42 @@ const Home = () => {
         <div className="box">
           <input
             type="number"
+            inputMode="numeric"
             placeholder="Código do crachá"
             value={codigoBusca}
             onChange={(e) => setCodigoBusca(e.target.value)}
           />
 
-          <button onClick={buscarCliente}>Buscar</button>
+          <button onClick={buscarCliente}>
+            Buscar
+          </button>
         </div>
 
         {cliente && (
           <>
             <div className="cliente-card">
+
               <h3>{cliente.nome}</h3>
 
-              <p>Saldo: R$ {cliente.saldo.toFixed(2)}</p>
+              <p className="saldo">
+                Saldo: R$ {cliente.saldo.toFixed(2)}
+              </p>
 
               <input
                 type="number"
-                placeholder="Valor"
+                inputMode="decimal"
+                step="0.01"
+                placeholder="Digite o valor"
                 value={valor}
                 onChange={(e) => setValor(e.target.value)}
               />
+
+              {/* BOTÕES RÁPIDOS */}
+              <div className="quick-values">
+                <button onClick={() => definirValorRapido(5)}>5</button>
+                <button onClick={() => definirValorRapido(10)}>10</button>
+                <button onClick={() => definirValorRapido(20)}>20</button>
+              </div>
 
               <div className="actions">
                 <button className="btn-green" onClick={recarregar}>
@@ -227,13 +259,16 @@ const Home = () => {
                   Debitar
                 </button>
               </div>
+
             </div>
 
             {historico.length > 0 && (
+
               <div className="historico">
 
                 <div className="historico-header">
                   <h3>Histórico</h3>
+
                   <button onClick={exportarExcel}>
                     Exportar Excel
                   </button>
@@ -269,8 +304,10 @@ const Home = () => {
         <h2>Cadastrar Novo Cliente</h2>
 
         <div className="box">
+
           <input
             type="number"
+            inputMode="numeric"
             placeholder="Código"
             value={novoCodigo}
             onChange={(e) => setNovoCodigo(e.target.value)}
@@ -286,9 +323,11 @@ const Home = () => {
           <button onClick={cadastrarCliente}>
             Cadastrar
           </button>
+
         </div>
 
       </div>
+
     </div>
   );
 };
