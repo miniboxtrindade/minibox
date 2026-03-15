@@ -16,6 +16,8 @@ interface Transacao {
   data: string;
 }
 
+const API_URL = import.meta.env.VITE_API_URL;
+
 const Home = () => {
   const navigate = useNavigate();
   const token = Cookies.get('token');
@@ -35,7 +37,7 @@ const Home = () => {
   const buscarHistorico = async () => {
     try {
       const response = await fetch(
-        `http://localhost:3000/api/client/${codigoBusca}/history`,
+        `${API_URL}/api/client/${codigoBusca}/history`,
         {
           headers: { Authorization: `Bearer ${token}` }
         }
@@ -45,6 +47,8 @@ const Home = () => {
 
       if (response.ok) {
         setHistorico(data);
+      } else {
+        setHistorico([]);
       }
     } catch {
       console.log('Erro ao buscar histórico');
@@ -54,7 +58,7 @@ const Home = () => {
   const buscarCliente = async () => {
     try {
       const response = await fetch(
-        `http://localhost:3000/api/client/${codigoBusca}`,
+        `${API_URL}/api/client/${codigoBusca}`,
         {
           headers: { Authorization: `Bearer ${token}` }
         }
@@ -66,7 +70,7 @@ const Home = () => {
         setCliente(data);
         buscarHistorico();
       } else {
-        alert(data.message);
+        alert(data.message || 'Cliente não encontrado');
         setCliente(null);
         setHistorico([]);
       }
@@ -76,60 +80,82 @@ const Home = () => {
   };
 
   const recarregar = async () => {
-    await fetch(
-      `http://localhost:3000/api/client/${codigoBusca}/recharge`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify({ valor: Number(valor) })
-      }
-    );
+    try {
+      const response = await fetch(
+        `${API_URL}/api/client/${codigoBusca}/recharge`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`
+          },
+          body: JSON.stringify({ valor: Number(valor) })
+        }
+      );
 
-    setValor('');
-    buscarCliente();
+      if (!response.ok) {
+        const data = await response.json();
+        alert(data.message);
+      }
+
+      setValor('');
+      buscarCliente();
+    } catch {
+      alert('Erro ao recarregar saldo');
+    }
   };
 
   const debitar = async () => {
-    await fetch(
-      `http://localhost:3000/api/client/${codigoBusca}/debit`,
-      {
+    try {
+      const response = await fetch(
+        `${API_URL}/api/client/${codigoBusca}/debit`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`
+          },
+          body: JSON.stringify({ valor: Number(valor) })
+        }
+      );
+
+      if (!response.ok) {
+        const data = await response.json();
+        alert(data.message);
+      }
+
+      setValor('');
+      buscarCliente();
+    } catch {
+      alert('Erro ao debitar saldo');
+    }
+  };
+
+  const cadastrarCliente = async () => {
+    try {
+      const response = await fetch(`${API_URL}/api/client`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`
         },
-        body: JSON.stringify({ valor: Number(valor) })
+        body: JSON.stringify({
+          codigo: Number(novoCodigo),
+          nome: novoNome
+        })
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        alert('Cliente cadastrado com sucesso!');
+        setNovoCodigo('');
+        setNovoNome('');
+      } else {
+        alert(data.message || 'Erro ao cadastrar cliente');
       }
-    );
-
-    setValor('');
-    buscarCliente();
-  };
-
-  const cadastrarCliente = async () => {
-    const response = await fetch(`${(import.meta as any).env.VITE_API_URL}/user/login`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`
-      },
-      body: JSON.stringify({
-        codigo: Number(novoCodigo),
-        nome: novoNome
-      })
-    });
-
-    const data = await response.json();
-
-    if (response.ok) {
-      alert('Cliente cadastrado com sucesso!');
-      setNovoCodigo('');
-      setNovoNome('');
-    } else {
-      alert(data.message);
+    } catch {
+      alert('Erro de conexão com o servidor');
     }
   };
 
@@ -147,6 +173,7 @@ const Home = () => {
 
     const ws = XLSX.utils.json_to_sheet(dadosFormatados);
     const wb = XLSX.utils.book_new();
+
     XLSX.utils.book_append_sheet(wb, ws, 'Relatorio');
 
     XLSX.writeFile(wb, `relatorio_cliente_${codigoBusca}.xlsx`);
@@ -154,6 +181,7 @@ const Home = () => {
 
   return (
     <div className="home-page">
+
       <nav id="home-bar">
         <div id="brand">BODEGA EAC</div>
         <div id="options">
@@ -162,7 +190,9 @@ const Home = () => {
       </nav>
 
       <div className="home-content">
+
         <h2>Buscar Cliente</h2>
+
         <div className="box">
           <input
             type="number"
@@ -170,6 +200,7 @@ const Home = () => {
             value={codigoBusca}
             onChange={(e) => setCodigoBusca(e.target.value)}
           />
+
           <button onClick={buscarCliente}>Buscar</button>
         </div>
 
@@ -177,6 +208,7 @@ const Home = () => {
           <>
             <div className="cliente-card">
               <h3>{cliente.nome}</h3>
+
               <p>Saldo: R$ {cliente.saldo.toFixed(2)}</p>
 
               <input
@@ -190,6 +222,7 @@ const Home = () => {
                 <button className="btn-green" onClick={recarregar}>
                   Recarregar
                 </button>
+
                 <button className="btn-red" onClick={debitar}>
                   Debitar
                 </button>
@@ -198,6 +231,7 @@ const Home = () => {
 
             {historico.length > 0 && (
               <div className="historico">
+
                 <div className="historico-header">
                   <h3>Histórico</h3>
                   <button onClick={exportarExcel}>
@@ -206,6 +240,7 @@ const Home = () => {
                 </div>
 
                 <table>
+
                   <thead>
                     <tr>
                       <th>Tipo</th>
@@ -213,24 +248,26 @@ const Home = () => {
                       <th>Data</th>
                     </tr>
                   </thead>
+
                   <tbody>
                     {historico.map((item, index) => (
                       <tr key={index}>
                         <td>{item.tipo}</td>
                         <td>R$ {item.valor.toFixed(2)}</td>
-                        <td>
-                          {new Date(item.data).toLocaleString()}
-                        </td>
+                        <td>{new Date(item.data).toLocaleString()}</td>
                       </tr>
                     ))}
                   </tbody>
+
                 </table>
+
               </div>
             )}
           </>
         )}
 
         <h2>Cadastrar Novo Cliente</h2>
+
         <div className="box">
           <input
             type="number"
@@ -238,14 +275,19 @@ const Home = () => {
             value={novoCodigo}
             onChange={(e) => setNovoCodigo(e.target.value)}
           />
+
           <input
             type="text"
             placeholder="Nome"
             value={novoNome}
             onChange={(e) => setNovoNome(e.target.value)}
           />
-          <button onClick={cadastrarCliente}>Cadastrar</button>
+
+          <button onClick={cadastrarCliente}>
+            Cadastrar
+          </button>
         </div>
+
       </div>
     </div>
   );
