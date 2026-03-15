@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './home.css';
 import { useNavigate } from 'react-router-dom';
 import Cookies from 'js-cookie';
@@ -30,19 +30,33 @@ const Home = () => {
   const [novoNome, setNovoNome] = useState('');
   const [historico, setHistorico] = useState<Transacao[]>([]);
 
+  /* =========================
+     LOGOUT
+  ========================= */
+
   const handleLogout = () => {
     Cookies.remove('token');
     navigate('/login');
   };
 
+  /* =========================
+     BOTÕES DE VALOR RÁPIDO
+  ========================= */
+
   const definirValorRapido = (v: number) => {
     setValor(String(v));
   };
 
+  /* =========================
+     BUSCAR HISTÓRICO
+  ========================= */
+
   const buscarHistorico = async () => {
     try {
+
       const response = await fetch(`${API_URL}/api/client/${codigoBusca}/history`, {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${token}` },
+        cache: "no-store"
       });
 
       const data = await response.json();
@@ -58,33 +72,60 @@ const Home = () => {
     }
   };
 
+  /* =========================
+     BUSCAR CLIENTE
+  ========================= */
+
   const buscarCliente = async () => {
+
+    if (!codigoBusca) return;
+
     try {
 
       const response = await fetch(`${API_URL}/api/client/${codigoBusca}`, {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${token}` },
+        cache: "no-store"
       });
 
       const data = await response.json();
 
       if (response.ok) {
         setCliente(data);
-        buscarHistorico();
+        await buscarHistorico();
       } else {
-        alert(data.message || 'Cliente não encontrado');
         setCliente(null);
         setHistorico([]);
       }
 
     } catch {
-      alert('Erro ao buscar cliente');
+      console.log('Erro ao buscar cliente');
     }
   };
 
+  /* =========================
+     ATUALIZAÇÃO AUTOMÁTICA
+  ========================= */
+
+  useEffect(() => {
+
+    if (!codigoBusca) return;
+
+    const interval = setInterval(() => {
+      buscarCliente();
+    }, 3000);
+
+    return () => clearInterval(interval);
+
+  }, [codigoBusca]);
+
+  /* =========================
+     RECARREGAR
+  ========================= */
+
   const recarregar = async () => {
 
-    if (!valor) {
-      alert("Digite um valor");
+    if (!valor || Number(valor) <= 0) {
+      alert("Digite um valor válido");
       return;
     }
 
@@ -105,17 +146,21 @@ const Home = () => {
       }
 
       setValor('');
-      buscarCliente();
+      await buscarCliente();
 
     } catch {
       alert('Erro ao recarregar saldo');
     }
   };
 
+  /* =========================
+     DEBITAR
+  ========================= */
+
   const debitar = async () => {
 
-    if (!valor) {
-      alert("Digite um valor");
+    if (!valor || Number(valor) <= 0) {
+      alert("Digite um valor válido");
       return;
     }
 
@@ -136,14 +181,23 @@ const Home = () => {
       }
 
       setValor('');
-      buscarCliente();
+      await buscarCliente();
 
     } catch {
       alert('Erro ao debitar saldo');
     }
   };
 
+  /* =========================
+     CADASTRAR CLIENTE
+  ========================= */
+
   const cadastrarCliente = async () => {
+
+    if (!novoCodigo || !novoNome) {
+      alert("Preencha os campos");
+      return;
+    }
 
     try {
 
@@ -173,6 +227,10 @@ const Home = () => {
       alert('Erro de conexão com o servidor');
     }
   };
+
+  /* =========================
+     EXPORTAR EXCEL
+  ========================= */
 
   const exportarExcel = () => {
 
@@ -211,6 +269,7 @@ const Home = () => {
         <h2>Buscar Cliente</h2>
 
         <div className="box">
+
           <input
             type="number"
             inputMode="numeric"
@@ -222,6 +281,7 @@ const Home = () => {
           <button onClick={buscarCliente}>
             Buscar
           </button>
+
         </div>
 
         {cliente && (
@@ -243,7 +303,6 @@ const Home = () => {
                 onChange={(e) => setValor(e.target.value)}
               />
 
-              {/* BOTÕES RÁPIDOS */}
               <div className="quick-values">
                 <button onClick={() => definirValorRapido(5)}>5</button>
                 <button onClick={() => definirValorRapido(10)}>10</button>
@@ -251,6 +310,7 @@ const Home = () => {
               </div>
 
               <div className="actions">
+
                 <button className="btn-green" onClick={recarregar}>
                   Recarregar
                 </button>
@@ -258,6 +318,7 @@ const Home = () => {
                 <button className="btn-red" onClick={debitar}>
                   Debitar
                 </button>
+
               </div>
 
             </div>
@@ -297,6 +358,7 @@ const Home = () => {
                 </table>
 
               </div>
+
             )}
           </>
         )}
