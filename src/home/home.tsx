@@ -78,29 +78,40 @@ const Home = () => {
 
   const buscarCliente = async () => {
 
-    if (!codigoBusca) return;
+  if (!codigoBusca) {
+    alert("Digite um código para buscar");
+    return;
+  }
 
-    try {
+  try {
 
-      const response = await fetch(`${API_URL}/api/client/${codigoBusca}`, {
-        headers: { Authorization: `Bearer ${token}` },
-        cache: "no-store"
-      });
+    const response = await fetch(`${API_URL}/api/client/${codigoBusca}`, {
+      headers: { Authorization: `Bearer ${token}` },
+      cache: "no-store"
+    });
 
-      const data = await response.json();
+    const data = await response.json();
 
-      if (response.ok) {
-        setCliente(data);
-        await buscarHistorico();
-      } else {
-        setCliente(null);
-        setHistorico([]);
-      }
+    if (response.ok) {
 
-    } catch {
-      console.log('Erro ao buscar cliente');
+      setCliente(data);
+      await buscarHistorico();
+
+    } else {
+
+      alert("Cliente não encontrado");
+
+      setCliente(null);
+      setHistorico([]);
+
     }
-  };
+
+  } catch {
+
+    alert("Erro ao buscar cliente");
+
+  }
+};
 
   /* =========================
      ATUALIZAÇÃO AUTOMÁTICA
