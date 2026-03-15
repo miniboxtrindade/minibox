@@ -279,7 +279,15 @@ const Home = () => {
       <nav id="home-bar">
         <div id="brand">BODEGA EAC</div>
         <div id="options">
-          <button onClick={handleLogout}>SAIR</button>
+
+          <button onClick={() => navigate("/dashboard")}>
+            Dashboard
+          </button>
+
+          <button onClick={handleLogout}>
+            Sair
+          </button>
+
         </div>
       </nav>
 
