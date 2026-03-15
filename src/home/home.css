@@ -2,6 +2,7 @@
 
 * {
   box-sizing: border-box;
+  max-width: 100%;
 }
 
 html, body {
@@ -9,6 +10,14 @@ html, body {
   font-family: Arial, sans-serif;
   background-color: #f4f6f9;
   overflow-x: hidden;
+}
+
+/* CONTAINER GERAL */
+
+.home-page {
+  width: 100%;
+  overflow-x: hidden;
+  padding-bottom: 40px;
 }
 
 /* NAVBAR */
@@ -64,11 +73,13 @@ h2 {
   gap: 10px;
   margin-bottom: 30px;
   flex-wrap: wrap;
+  width: 100%;
 }
 
 .box input {
   flex: 1;
   min-width: 120px;
+  width: 100%;
   padding: 12px;
   border-radius: 6px;
   border: 1px solid #ccc;
@@ -83,6 +94,7 @@ h2 {
   border-radius: 6px;
   cursor: pointer;
   font-size: 15px;
+  width: auto;
 }
 
 /* CARD CLIENTE */
@@ -93,17 +105,26 @@ h2 {
   border-radius: 10px;
   margin-bottom: 30px;
   box-shadow: 0px 4px 10px rgba(0,0,0,0.05);
+  width: 100%;
+}
+
+.cliente-card input {
+  width: 100%;
+  margin-top: 10px;
 }
 
 .cliente-card h3 {
   margin-top: 0;
 }
 
+/* BOTÕES DE AÇÃO */
+
 .actions {
   margin-top: 15px;
   display: flex;
   gap: 10px;
   flex-wrap: wrap;
+  width: 100%;
 }
 
 .actions button {
@@ -131,6 +152,7 @@ h2 {
 
 .historico {
   margin-top: 20px;
+  width: 100%;
   overflow-x: auto;
 }
 
@@ -139,6 +161,7 @@ h2 {
   justify-content: space-between;
   align-items: center;
   flex-wrap: wrap;
+  width: 100%;
 }
 
 .historico-header button {
@@ -151,8 +174,8 @@ h2 {
 }
 
 .historico table {
-  min-width: 420px;
   width: 100%;
+  min-width: 320px;
   border-collapse: collapse;
   margin-top: 10px;
 }
