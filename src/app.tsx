@@ -4,7 +4,7 @@ import './app.css';
 
 import Login from './login/login';
 import Home from './home/home';
-import Dashboard from "./dashboard/dashboard";
+import Dashboard from './dashboard/Dashboard';
 
 console.log('✅ App.tsx carregado');
 
