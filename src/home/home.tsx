@@ -40,7 +40,7 @@ const Home = () => {
   };
 
   /* =========================
-     BOTÕES DE VALOR RÁPIDO
+     BOTÕES RÁPIDOS
   ========================= */
 
   const definirValorRapido = (v: number) => {
@@ -52,6 +52,9 @@ const Home = () => {
   ========================= */
 
   const buscarHistorico = async () => {
+
+    if (!codigoBusca) return;
+
     try {
 
       const response = await fetch(`${API_URL}/api/client/${codigoBusca}/history`, {
@@ -70,6 +73,7 @@ const Home = () => {
     } catch {
       console.log('Erro ao buscar histórico');
     }
+
   };
 
   /* =========================
@@ -78,40 +82,41 @@ const Home = () => {
 
   const buscarCliente = async () => {
 
-  if (!codigoBusca) {
-    alert("Digite um código para buscar");
-    return;
-  }
+    if (!codigoBusca) {
+      alert("Digite o código do crachá");
+      return;
+    }
 
-  try {
+    try {
 
-    const response = await fetch(`${API_URL}/api/client/${codigoBusca}`, {
-      headers: { Authorization: `Bearer ${token}` },
-      cache: "no-store"
-    });
+      const response = await fetch(`${API_URL}/api/client/${codigoBusca}`, {
+        headers: { Authorization: `Bearer ${token}` },
+        cache: "no-store"
+      });
 
-    const data = await response.json();
+      if (response.status === 404) {
 
-    if (response.ok) {
+        alert("Cliente não encontrado");
+
+        setCliente(null);
+        setHistorico([]);
+
+        return;
+      }
+
+      const data = await response.json();
 
       setCliente(data);
       await buscarHistorico();
 
-    } else {
+    } catch (error) {
 
-      alert("Cliente não encontrado");
-
-      setCliente(null);
-      setHistorico([]);
+      console.log(error);
+      alert("Erro ao buscar cliente");
 
     }
 
-  } catch {
-
-    alert("Erro ao buscar cliente");
-
-  }
-};
+  };
 
   /* =========================
      ATUALIZAÇÃO AUTOMÁTICA
@@ -162,6 +167,7 @@ const Home = () => {
     } catch {
       alert('Erro ao recarregar saldo');
     }
+
   };
 
   /* =========================
@@ -197,6 +203,7 @@ const Home = () => {
     } catch {
       alert('Erro ao debitar saldo');
     }
+
   };
 
   /* =========================
@@ -237,6 +244,7 @@ const Home = () => {
     } catch {
       alert('Erro de conexão com o servidor');
     }
+
   };
 
   /* =========================
