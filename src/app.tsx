@@ -4,7 +4,7 @@ import './app.css';
 
 import Login from './login/login';
 import Home from './home/home';
-import SignUp from './sign-up/signup';
+import Dashboard from "./dashboard/dashboard";
 
 console.log('✅ App.tsx carregado');
 
@@ -16,7 +16,7 @@ const App: React.FC = () => {
 
         <Route path="/login" element={<Login />} />
         <Route path="/home" element={<Home />} />
-        <Route path="/sign-up" element={<SignUp />} />
+        <Route path="/dashboard" element={<Dashboard />} />
 
         <Route path="*" element={<h1>404 - Página não encontrada</h1>} />
       </Routes>
