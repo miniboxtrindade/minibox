@@ -20,7 +20,7 @@ export default function Login() {
         setLoading(true);
 
         try {
-            const response = await fetch(`${(import.meta as any).env.VITE_API_URL}/user/login`, {
+            const response = await fetch("https://bodega-back.onrender.com/api/user/login", {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
