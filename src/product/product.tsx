@@ -7,7 +7,7 @@ export default function Product() {
 
   const navigate = useNavigate();
 
-  const [produtos, setProdutos] = useState([]);
+  const [produtos, setProdutos] = useState<any[]>([]);
 
   const [novo, setNovo] = useState({
     nome: "",
@@ -20,9 +20,13 @@ export default function Product() {
      BUSCAR PRODUTOS
   ========================= */
   const buscar = async () => {
-    const res = await fetch(`${API_URL}/api/product`);
-    const data = await res.json();
-    setProdutos(data);
+    try {
+      const res = await fetch(`${API_URL}/api/product`);
+      const data = await res.json();
+      setProdutos(data);
+    } catch {
+      alert("Erro ao buscar produtos");
+    }
   };
 
   useEffect(() => {
@@ -39,27 +43,32 @@ export default function Product() {
       return;
     }
 
-    await fetch(`${API_URL}/api/product`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        nome: novo.nome,
-        preco: Number(novo.preco),
-        quantidade: Number(novo.quantidade),
-        categoria: novo.categoria
-      })
-    });
+    try {
+      await fetch(`${API_URL}/api/product`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          nome: novo.nome,
+          preco: Number(novo.preco),
+          quantidade: Number(novo.quantidade),
+          categoria: novo.categoria
+        })
+      });
 
-    setNovo({
-      nome: "",
-      preco: "",
-      quantidade: "",
-      categoria: "ALIMENTO"
-    });
+      setNovo({
+        nome: "",
+        preco: "",
+        quantidade: "",
+        categoria: "ALIMENTO"
+      });
 
-    buscar();
+      buscar();
+
+    } catch {
+      alert("Erro ao criar produto");
+    }
   };
 
   /* =========================
@@ -67,13 +76,17 @@ export default function Product() {
   ========================= */
   const atualizar = async (id: string, campo: string, valor: any) => {
 
-    await fetch(`${API_URL}/api/product/${id}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ [campo]: valor })
-    });
+    try {
+      await fetch(`${API_URL}/api/product/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ [campo]: valor })
+      });
 
-    buscar();
+      buscar();
+    } catch {
+      alert("Erro ao atualizar produto");
+    }
   };
 
   /* =========================
@@ -83,11 +96,15 @@ export default function Product() {
 
     if (!confirm("Deseja excluir?")) return;
 
-    await fetch(`${API_URL}/api/product/${id}`, {
-      method: "DELETE"
-    });
+    try {
+      await fetch(`${API_URL}/api/product/${id}`, {
+        method: "DELETE"
+      });
 
-    buscar();
+      buscar();
+    } catch {
+      alert("Erro ao deletar produto");
+    }
   };
 
   return (
@@ -139,6 +156,7 @@ export default function Product() {
             <option value="ALIMENTO">🍔 Alimento</option>
             <option value="BEBIDA">🥤 Bebida</option>
             <option value="DOCE">🍫 Doce</option>
+            <option value="ARTIGO_RELIGIOSO">🙇🏻‍♂️ Artigo Religioso</option>
           </select>
 
           <button className="btn-green" onClick={criarProduto}>
@@ -181,6 +199,7 @@ export default function Product() {
               <option value="ALIMENTO">🍔 Alimento</option>
               <option value="BEBIDA">🥤 Bebida</option>
               <option value="DOCE">🍫 Doce</option>
+              <option value="ARTIGO_RELIGIOSO">🙇🏻‍♂️ Artigo Religioso</option>
             </select>
 
             <button className="btn-red" onClick={() => deletar(p._id)}>
