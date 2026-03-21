@@ -126,7 +126,7 @@ export default function Product() {
 
         <div id="options">
           <button onClick={() => navigate("/home")}>Home</button>
-          <button onClick={() => navigate("/dashboard")}>DashBoard</button>
+          <button onClick={() => navigate("/dashboard")}>Dashboard</button>
           <button onClick={() => navigate("/sale")}>Venda</button>
           <button onClick={() => navigate("/product")}>Produtos</button>
           <button onClick={handleLogout}>Sair</button>

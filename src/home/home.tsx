@@ -277,31 +277,21 @@ const Home = () => {
     <div className="home-page">
 
       <nav id="home-bar">
-        <div id="brand">BODEGA EAC</div>
-        <div id="options">
+  <div id="brand">BODEGA EAC</div>
 
-          <button onClick={() => navigate("/home")}>
-            Home
-          </button>
+  {/* MENU CENTRAL */}
+  <div className="nav-center">
+    <button onClick={() => navigate("/home")}>Home</button>
+    <button onClick={() => navigate("/dashboard")}>Dashboard</button>
+    <button onClick={() => navigate("/sale")}>Venda</button>
+    <button onClick={() => navigate("/product")}>Produtos</button>
+  </div>
 
-          <button onClick={() => navigate("/dashboard")}>
-            Dashboard
-          </button>
-
-          <button onClick={() => navigate("/sale")}>
-            Venda
-          </button>
-
-          <button onClick={() => navigate("/product")}>
-            Produtos
-          </button>
-
-          <button onClick={handleLogout}>
-            Sair
-          </button>
-
-        </div>
-      </nav>
+  {/* DIREITA */}
+  <div className="nav-right">
+    <button onClick={handleLogout}>Sair</button>
+  </div>
+</nav>
 
       <div className="home-content">
 

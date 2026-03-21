@@ -343,3 +343,55 @@ input::placeholder {
 .btn-finalizar:active {
   transform: scale(0.97);
 }
+
+#home-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 70px;
+
+  background-color: #151551;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  padding: 0 20px;
+}
+
+/* CENTRO */
+.nav-center {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+
+  display: flex;
+  gap: 10px;
+}
+
+/* DIREITA */
+.nav-right {
+  display: flex;
+}
+
+/* BOTÕES PADRÃO */
+#home-bar button {
+  background: transparent;
+  color: white;
+  border: 1px solid white;
+  border-radius: 6px;
+  padding: 8px 14px;
+  cursor: pointer;
+}
+
+/* BOTÃO SAIR DIFERENTE */
+.nav-right button {
+  border-color: #dc3545;
+  color: #dc3545;
+}
+
+.nav-right button:hover {
+  background: #dc3545;
+  color: white;
+}
