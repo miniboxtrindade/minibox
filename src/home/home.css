@@ -204,31 +204,6 @@ input::placeholder {
 
 }
 
-/* =========================
-   PRODUTO - NOVO LAYOUT
-========================= */
-
-.produto-item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-
-  background: white;
-  padding: 14px;
-  margin-bottom: 10px;
-  border-radius: 14px;
-
-  box-shadow: 0 4px 12px rgba(0,0,0,0.06);
-}
-
-/* ESQUERDA */
-.produto-info {
-  align-items: center;
-  display: flex;
-  flex-direction: column;
-}
-
 .produto-nome {
   font-weight: 600;
   font-size: 15px;
@@ -237,15 +212,6 @@ input::placeholder {
 .produto-estoque {
   font-size: 12px;
   color: #888;
-}
-
-/* CENTRO (PREÇO FIXO) */
-.produto-preco {
-  font-weight: bold;
-  color: #151551;
-  font-size: 15px;
-  text-align: center;
-  margin-top: 5px;
 }
 
 /* DIREITA (CONTROLE) */
@@ -450,22 +416,6 @@ input::placeholder {
   }
 
   /* PRODUTOS (CORRETO) */
-  .produto-item {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 10px;
-  }
-
-  .produto-info {
-    align-items: center;
-    width: 100%;
-  }
-
-  .produto-preco {
-    width: 100%;
-    text-align: center;
-    margin-top: 5px;
-  }
 
   .controle {
     width: 100%;
@@ -511,4 +461,82 @@ button {
   .home-content {
     padding-bottom: 180px;
   }
+  
+  .produto-linha {
+  grid-template-columns: 1fr;
+  text-align: center;
+  gap: 6px;
+}
+
+.produto-linha .controle {
+  justify-content: center;
+}
+}
+
+/* =========================
+   PRODUTO LINHA (NOVO)
+========================= */
+
+.produto-linha {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr;
+  align-items: center;
+
+  background: white;
+  padding: 12px;
+  margin-bottom: 8px;
+  border-radius: 10px;
+  transition: all 0.2s ease;
+
+  box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+}
+
+.produto-linha:hover {
+  transform: translateY(-2px);
+}
+
+/* NOME */
+.produto-linha .produto-nome {
+  font-weight: 600;
+}
+
+/* ESTOQUE */
+.produto-linha .produto-estoque {
+  font-size: 12px;
+  color: #666;
+}
+
+/* PREÇO */
+.produto-linha .produto-preco {
+  font-weight: bold;
+  color: #151551;
+}
+
+/* CONTROLE */
+.produto-linha .controle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.produto-linha .controle button {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: none;
+
+  background: #151551;
+  color: white;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.produto-linha .qtd {
+  min-width: 20px;
+  text-align: center;
+  font-weight: bold;
+}
+
+.controle button:active {
+  transform: scale(0.9);
 }
