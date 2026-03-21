@@ -137,85 +137,6 @@ input::placeholder {
   font-size: 18px;
 }
 
-/* =========================
-   PRODUTOS (PADRÃO ÚNICO)
-========================= */
-
-.produto-item {
-  display: grid;
-  grid-template-columns: 1fr auto auto;
-  align-items: center;
-  gap: 15px;
-
-  background: white;
-  padding: 14px;
-  margin-bottom: 10px;
-  border-radius: 10px;
-
-  box-shadow: 0px 2px 6px rgba(0,0,0,0.05);
-  transition: 0.2s;
-}
-
-.produto-item:hover {
-  transform: translateY(-2px);
-}
-
-.produto-item.ativo {
-  border: 2px solid #151551;
-}
-
-.produto-item.baixo {
-  border-left: 5px solid #dc3545;
-}
-
-/* INFO */
-.info {
-  display: flex;
-  flex-direction: column;
-}
-
-.nome {
-  font-weight: 600;
-}
-
-.estoque {
-  font-size: 12px;
-  color: #777;
-}
-
-.estoque.baixo {
-  color: #dc3545;
-  font-weight: bold;
-}
-
-/* PREÇO */
-.preco {
-  font-weight: bold;
-  color: #151551;
-}
-
-/* CONTROLE */
-.controle {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.controle button {
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  border: none;
-  background: #151551;
-  color: white;
-  cursor: pointer;
-  transition: 0.2s;
-}
-
-.controle button:hover {
-  background: #1f1f7a;
-  transform: scale(1.1);
-}
 
 /* =========================
    CARRINHO
@@ -274,8 +195,10 @@ input::placeholder {
   }
 
   .produto-item {
-    grid-template-columns: 1fr;
-  }
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+}
 
   .controle {
     justify-content: flex-end;
@@ -285,4 +208,153 @@ input::placeholder {
     grid-template-columns: 1fr;
   }
 
+}
+
+/* =========================
+   PRODUTO - ESTILO APP
+========================= */
+
+.produto-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  background: white;
+  padding: 14px;
+  margin-bottom: 10px;
+  border-radius: 14px;
+
+  box-shadow: 0 3px 10px rgba(0,0,0,0.05);
+  transition: 0.2s;
+}
+
+.produto-item:hover {
+  transform: translateY(-2px);
+}
+
+/* INFO */
+.produto-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.produto-nome {
+  font-weight: 600;
+  font-size: 15px;
+}
+
+.produto-estoque {
+  font-size: 12px;
+  color: #888;
+}
+
+.produto-estoque.baixo {
+  color: #dc3545;
+  font-weight: bold;
+}
+
+/* PREÇO */
+.produto-preco {
+  font-weight: bold;
+  font-size: 15px;
+  color: #151551;
+}
+
+/* CONTROLE */
+.controle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.controle button {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: none;
+
+  background: #151551;
+  color: white;
+  font-size: 16px;
+
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.controle button:hover {
+  background: #1f1f7a;
+  transform: scale(1.1);
+}
+
+.qtd {
+  font-weight: bold;
+  min-width: 20px;
+  text-align: center;
+}
+
+/* =========================
+   CATEGORIA
+========================= */
+
+.categoria h3 {
+  margin-top: 25px;
+  margin-bottom: 10px;
+  font-size: 16px;
+  color: #151551;
+}
+
+/* =========================
+   CARRINHO MODERNO
+========================= */
+
+.carrinho-fixo {
+  position: sticky;
+  bottom: 0;
+  background: white;
+  padding: 15px;
+  border-radius: 16px;
+  margin-top: 20px;
+  border-top: 2px solid #eee;
+
+  box-shadow: 0 -4px 12px rgba(0,0,0,0.08);
+}
+
+.carrinho-item {
+  display: flex;
+  justify-content: space-between;
+  font-size: 14px;
+  margin-bottom: 5px;
+}
+
+/* TOTAL */
+.total {
+  font-size: 20px;
+  font-weight: bold;
+  color: #151551;
+  margin-top: 10px;
+}
+
+/* BOTÃO FINALIZAR */
+.btn-finalizar {
+  width: 100%;
+  padding: 14px;
+  margin-top: 10px;
+
+  background: linear-gradient(135deg, #28a745, #218838);
+  color: white;
+  border: none;
+  border-radius: 10px;
+
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.btn-finalizar:hover {
+  transform: scale(1.02);
+}
+
+.btn-finalizar:active {
+  transform: scale(0.98);
 }

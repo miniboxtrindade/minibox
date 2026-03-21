@@ -18,7 +18,12 @@ export default function Sale() {
   const [produtos, setProdutos] = useState<any[]>([]);
   const [carrinho, setCarrinho] = useState<any[]>([]);
 
+  /* =========================
+     BUSCAR CLIENTE
+  ========================= */
   const buscarCliente = async () => {
+    if (!codigo) return;
+
     const res = await fetch(`${API_URL}/api/client/${codigo}`);
     const data = await res.json();
 
@@ -31,6 +36,9 @@ export default function Sale() {
     }
   };
 
+  /* =========================
+     PRODUTOS
+  ========================= */
   const buscarProdutos = async () => {
     const res = await fetch(`${API_URL}/api/product`);
     const data = await res.json();
@@ -123,6 +131,7 @@ export default function Sale() {
 
     <div className="home-page">
 
+      {/* NAVBAR */}
       <nav id="home-bar">
         <div id="brand">BODEGA EAC</div>
 
@@ -137,6 +146,7 @@ export default function Sale() {
 
         <h2>Venda</h2>
 
+        {/* BUSCA */}
         <div className="box">
           <input
             placeholder="Código do cliente"
@@ -146,6 +156,7 @@ export default function Sale() {
           <button onClick={buscarCliente}>Buscar</button>
         </div>
 
+        {/* CLIENTE */}
         {cliente && (
           <div className="cliente-card">
             <h3>{cliente.nome}</h3>
@@ -165,7 +176,7 @@ export default function Sale() {
           if (!lista.length) return null;
 
           return (
-            <div key={key}>
+            <div key={key} className="categoria">
 
               <h3>{label}</h3>
 
@@ -176,19 +187,19 @@ export default function Sale() {
                 return (
                   <div key={p._id} className="produto-item">
 
-                    <div className="info">
-                      <span className="nome">{p.nome}</span>
-                      <span className={`estoque ${p.quantidade <= 3 ? "baixo" : ""}`}>
+                    <div className="produto-info">
+                      <span className="produto-nome">{p.nome}</span>
+
+                      <span className={`produto-estoque ${p.quantidade <= 3 ? "baixo" : ""}`}>
                         {p.quantidade} disponíveis
                       </span>
                     </div>
 
-                    <div className="preco">
+                    <div className="produto-preco">
                       R$ {p.preco.toFixed(2)}
                     </div>
 
                     <div className="controle">
-
                       <button onClick={() => diminuir(p)}>-</button>
 
                       <span className="qtd">
@@ -196,7 +207,6 @@ export default function Sale() {
                       </span>
 
                       <button onClick={() => adicionar(p)}>+</button>
-
                     </div>
 
                   </div>
@@ -209,12 +219,12 @@ export default function Sale() {
 
         {/* CARRINHO */}
         {carrinho.length > 0 && (
-          <div className="carrinho-card">
+          <div className="carrinho-fixo">
 
             <h3>Carrinho</h3>
 
             {carrinho.map(item => (
-              <div key={item._id} className="carrinho-linha">
+              <div key={item._id} className="carrinho-item">
                 <span>{item.nome}</span>
                 <span>{item.quantidade}x</span>
                 <span>R$ {(item.preco * item.quantidade).toFixed(2)}</span>
