@@ -423,8 +423,8 @@ input::placeholder {
   }
 
   .controle button {
-    width: 40px;
-    height: 40px;
+    width: 28px;
+    height: 28px;
   }
 
   /* PRODUTOS EDIT */
@@ -520,20 +520,33 @@ button {
 }
 
 .produto-linha .controle button {
-  width: 30px;
-  height: 30px;
+  width: 26px;
+  height: 26px;
+
   border-radius: 50%;
   border: none;
 
   background: #151551;
   color: white;
+
   font-size: 14px;
+  font-weight: bold;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
   cursor: pointer;
+
+  transition: all 0.2s ease;
+
+  transform: scale(1.15);
 }
 
 .produto-linha .qtd {
-  min-width: 20px;
+  min-width: 18px;
   text-align: center;
+  font-size: 14px;
   font-weight: bold;
 }
 
