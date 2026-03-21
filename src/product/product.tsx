@@ -1,9 +1,16 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import Cookies from "js-cookie";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
+
 export default function Product() {
+
+    const handleLogout = () => {
+        Cookies.remove("token");
+        navigate("/login");
+        };
 
   const navigate = useNavigate();
 
@@ -37,6 +44,7 @@ export default function Product() {
      CRIAR PRODUTO
   ========================= */
   const criarProduto = async () => {
+    
 
     if (!novo.nome || !novo.preco || !novo.quantidade) {
       alert("Preencha todos os campos");
@@ -106,6 +114,7 @@ export default function Product() {
       alert("Erro ao deletar produto");
     }
   };
+  
 
   return (
 
@@ -117,8 +126,10 @@ export default function Product() {
 
         <div id="options">
           <button onClick={() => navigate("/home")}>Home</button>
+          <button onClick={() => navigate("/dashboard")}>DashBoard</button>
           <button onClick={() => navigate("/sale")}>Venda</button>
           <button onClick={() => navigate("/product")}>Produtos</button>
+          <button onClick={handleLogout}>Sair</button>
         </div>
       </nav>
 
