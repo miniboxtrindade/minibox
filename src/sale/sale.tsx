@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Cookies from "js-cookie";
+import Navbar from '../components/navbar';
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -138,26 +139,9 @@ export default function Sale() {
   };
 
   return (
-
     <div className="home-page">
 
-      {/* NAVBAR */}
-      <nav id="home-bar">
-  <div id="brand">BODEGA EAC</div>
-
-  {/* MENU CENTRAL */}
-  <div className="nav-center">
-    <button onClick={() => navigate("/home")}>Home</button>
-    <button onClick={() => navigate("/dashboard")}>Dashboard</button>
-    <button onClick={() => navigate("/sale")}>Venda</button>
-    <button onClick={() => navigate("/product")}>Produtos</button>
-  </div>
-
-  {/* DIREITA */}
-  <div className="nav-right">
-    <button onClick={handleLogout}>Sair</button>
-  </div>
-</nav>
+      <Navbar />
 
       <div className="home-content">
 
