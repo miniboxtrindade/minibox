@@ -39,13 +39,15 @@ export default function Sale() {
 
   useEffect(() => {
     const interval = setInterval(() => {
-      if (cliente) {
-        buscarProdutos();
-      }
+      if (cliente) buscarProdutos();
     }, 3000);
 
     return () => clearInterval(interval);
   }, [cliente]);
+
+  /* =========================
+     CARRINHO
+  ========================= */
 
   const adicionar = (p: any) => {
 
@@ -58,12 +60,16 @@ export default function Sale() {
           : i
       ));
     } else {
-      setCarrinho([...carrinho, { ...p, quantidade: 1 }]);
+      setCarrinho([...carrinho, {
+        _id: p._id,
+        nome: p.nome,
+        preco: p.preco,
+        quantidade: 1
+      }]);
     }
   };
 
   const diminuir = (p: any) => {
-
     setCarrinho(
       carrinho
         .map(i =>
@@ -80,7 +86,16 @@ export default function Sale() {
     0
   );
 
+  /* =========================
+     FINALIZAR
+  ========================= */
+
   const finalizar = async () => {
+
+    if (!carrinho.length) {
+      alert("Carrinho vazio");
+      return;
+    }
 
     const response = await fetch(`${API_URL}/api/sale`, {
       method: "POST",
@@ -106,10 +121,11 @@ export default function Sale() {
 
   return (
 
-    <div>
+    <div className="home-page">
 
       <nav id="home-bar">
         <div id="brand">BODEGA EAC</div>
+
         <div id="options">
           <button onClick={() => navigate("/home")}>Home</button>
           <button onClick={() => navigate("/sale")}>Venda</button>
@@ -133,11 +149,13 @@ export default function Sale() {
         {cliente && (
           <div className="cliente-card">
             <h3>{cliente.nome}</h3>
-            <p>Saldo: R$ {cliente.saldo.toFixed(2)}</p>
+            <p className="saldo">
+              Saldo: R$ {cliente.saldo.toFixed(2)}
+            </p>
           </div>
         )}
 
-        {/* PRODUTOS POR CATEGORIA */}
+        {/* PRODUTOS */}
         {Object.entries(categorias).map(([key, label]) => {
 
           const lista = produtos.filter(
@@ -147,7 +165,7 @@ export default function Sale() {
           if (!lista.length) return null;
 
           return (
-            <div key={key} className="categoria">
+            <div key={key}>
 
               <h3>{label}</h3>
 
@@ -173,7 +191,9 @@ export default function Sale() {
 
                       <button onClick={() => diminuir(p)}>-</button>
 
-                      <span>{item?.quantidade || 0}</span>
+                      <span className="qtd">
+                        {item?.quantidade || 0}
+                      </span>
 
                       <button onClick={() => adicionar(p)}>+</button>
 
@@ -185,12 +205,11 @@ export default function Sale() {
 
             </div>
           );
-
         })}
 
         {/* CARRINHO */}
         {carrinho.length > 0 && (
-          <div className="cliente-card">
+          <div className="carrinho-card">
 
             <h3>Carrinho</h3>
 
@@ -202,9 +221,11 @@ export default function Sale() {
               </div>
             ))}
 
-            <h2>Total: R$ {total.toFixed(2)}</h2>
+            <div className="total">
+              Total: R$ {total.toFixed(2)}
+            </div>
 
-            <button className="btn-green" onClick={finalizar}>
+            <button className="btn-finalizar" onClick={finalizar}>
               Finalizar Venda
             </button>
 
