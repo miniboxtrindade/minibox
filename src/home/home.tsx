@@ -283,10 +283,18 @@ const Home = () => {
           <button onClick={() => navigate("/dashboard")}>
             Dashboard
           </button>
+          
+          <button onClick={() => navigate("/home")}>
+            Home
+          </button>
 
           <button onClick={() => navigate("/sale")}>
-          Venda
-        </button>
+            Venda
+          </button>
+
+          <button onClick={() => navigate("/product")}>
+            Produtos
+          </button>
 
           <button onClick={handleLogout}>
             Sair
