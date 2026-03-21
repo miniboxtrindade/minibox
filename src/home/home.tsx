@@ -284,6 +284,10 @@ const Home = () => {
             Dashboard
           </button>
 
+          <button onClick={() => navigate("/sale")}>
+          Venda
+        </button>
+
           <button onClick={handleLogout}>
             Sair
           </button>
