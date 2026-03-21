@@ -347,3 +347,97 @@ input::placeholder {
   justify-content: space-between;
   padding: 10px 0;
 }
+
+/* PRODUTO */
+.produto-card {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  align-items: center;
+  gap: 15px;
+
+  background: white;
+  padding: 15px;
+  margin-bottom: 12px;
+  border-radius: 12px;
+
+  transition: 0.2s;
+}
+
+/* DESTAQUE */
+.produto-card.ativo {
+  border: 2px solid #151551;
+}
+
+/* ESTOQUE BAIXO */
+.produto-card.baixo {
+  border-left: 6px solid #dc3545;
+  background-color: #fff5f5;
+}
+
+/* INFO */
+.produto-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.produto-nome {
+  font-weight: bold;
+  font-size: 16px;
+}
+
+.produto-estoque {
+  font-size: 13px;
+  color: #777;
+}
+
+/* PREÇO */
+.produto-preco {
+  font-weight: bold;
+  font-size: 16px;
+}
+
+/* CONTADOR */
+.produto-acoes {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* BOTÕES */
+.produto-acoes button {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: none;
+  background: #151551;
+  color: white;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+/* ANIMAÇÃO */
+.pulse {
+  animation: pulse 0.2s;
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.3); }
+  100% { transform: scale(1); }
+}
+
+/* RESPONSIVO */
+@media (max-width: 768px) {
+  .produto-card {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .produto-preco {
+    text-align: left;
+  }
+
+  .produto-acoes {
+    justify-content: flex-end;
+  }
+}

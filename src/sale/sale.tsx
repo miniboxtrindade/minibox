@@ -20,11 +20,9 @@ export default function Sale() {
   const [cliente, setCliente] = useState<any>(null);
   const [produtos, setProdutos] = useState<Produto[]>([]);
   const [carrinho, setCarrinho] = useState<any[]>([]);
+  const [animando, setAnimando] = useState<string | null>(null);
 
-  /* =========================
-     BUSCAR CLIENTE
-  ========================= */
-
+  /* ========================= */
   const buscarCliente = async () => {
 
     const response = await fetch(`${API_URL}/api/client/${codigo}`, {
@@ -44,10 +42,6 @@ export default function Sale() {
 
   };
 
-  /* =========================
-     BUSCAR PRODUTOS
-  ========================= */
-
   const buscarProdutos = async () => {
 
     const response = await fetch(`${API_URL}/api/product`, {
@@ -63,10 +57,7 @@ export default function Sale() {
 
   };
 
-  /* =========================
-     ATUALIZAÇÃO EM TEMPO REAL
-  ========================= */
-
+  /* ========================= */
   useEffect(() => {
 
     const interval = setInterval(() => {
@@ -80,50 +71,42 @@ export default function Sale() {
 
   }, [cliente]);
 
-  /* =========================
-     CARRINHO
-  ========================= */
-
+  /* ========================= */
   const adicionar = (produto: Produto) => {
 
-    const estoqueAtual = produto.quantidade;
+    setAnimando(produto._id);
+    setTimeout(() => setAnimando(null), 200);
 
-    const itemCarrinho = carrinho.find(i => i._id === produto._id);
-    const quantidadeNoCarrinho = itemCarrinho ? itemCarrinho.quantidade : 0;
+    const item = carrinho.find(i => i._id === produto._id);
+    const qtd = item ? item.quantidade : 0;
 
-    if (quantidadeNoCarrinho >= estoqueAtual) {
+    if (qtd >= produto.quantidade) {
       alert("Sem estoque suficiente");
       return;
     }
 
-    if (itemCarrinho) {
-
+    if (item) {
       setCarrinho(carrinho.map(i =>
         i._id === produto._id
           ? { ...i, quantidade: i.quantidade + 1 }
           : i
       ));
-
     } else {
-
       setCarrinho([...carrinho, { ...produto, quantidade: 1 }]);
-
     }
-
   };
 
-  const diminuir = (produto: any) => {
+  const diminuir = (produto: Produto) => {
 
-    const atualizado = carrinho
-      .map(i =>
-        i._id === produto._id
-          ? { ...i, quantidade: i.quantidade - 1 }
-          : i
-      )
-      .filter(i => i.quantidade > 0);
-
-    setCarrinho(atualizado);
-
+    setCarrinho(
+      carrinho
+        .map(i =>
+          i._id === produto._id
+            ? { ...i, quantidade: i.quantidade - 1 }
+            : i
+        )
+        .filter(i => i.quantidade > 0)
+    );
   };
 
   const total = carrinho.reduce(
@@ -131,34 +114,26 @@ export default function Sale() {
     0
   );
 
-  /* =========================
-     FINALIZAR
-  ========================= */
-
+  /* ========================= */
   const finalizar = async () => {
 
-    if (!cliente) {
-      alert("Busque um cliente");
-      return;
-    }
+    if (!cliente) return alert("Busque um cliente");
 
     if (total > cliente.saldo) {
       alert("Saldo insuficiente");
       return;
     }
 
-    const itensFormatados = carrinho.flatMap(item =>
+    const itens = carrinho.flatMap(item =>
       Array(item.quantidade).fill({ id: item._id })
     );
 
     const response = await fetch(`${API_URL}/api/sale`, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         codigo: Number(codigo),
-        itens: itensFormatados
+        itens
       })
     });
 
@@ -172,18 +147,15 @@ export default function Sale() {
     } else {
       alert(data.message);
     }
-
   };
 
   /* ========================= */
-
   return (
 
     <div>
 
       <nav id="home-bar">
         <div id="brand">BODEGA EAC</div>
-
         <div id="options">
           <button onClick={() => navigate("/home")}>Home</button>
           <button onClick={() => navigate("/sale")}>Venda</button>
@@ -201,10 +173,7 @@ export default function Sale() {
             value={codigo}
             onChange={(e) => setCodigo(e.target.value)}
           />
-
-          <button onClick={buscarCliente}>
-            Buscar
-          </button>
+          <button onClick={buscarCliente}>Buscar</button>
         </div>
 
         {cliente && (
@@ -217,25 +186,40 @@ export default function Sale() {
         {/* PRODUTOS */}
         {produtos.map((p) => {
 
-          const itemCarrinho = carrinho.find(i => i._id === p._id);
+          const item = carrinho.find(i => i._id === p._id);
 
           return (
-            <div key={p._id} className="produto-linha">
+            <div
+              key={p._id}
+              className={`produto-card 
+                ${item ? "ativo" : ""} 
+                ${p.quantidade <= 3 ? "baixo" : ""}
+              `}
+            >
 
-              <div>
-                <strong>{p.nome}</strong>
-                <p>Estoque: {p.quantidade}</p>
+              <div className="produto-info">
+                <span className="produto-nome">{p.nome}</span>
+                <span className="produto-estoque">
+                  Estoque: {p.quantidade}
+                </span>
               </div>
 
-              <div>R$ {p.preco}</div>
+              <div className="produto-preco">
+                R$ {p.preco.toFixed(2)}
+              </div>
 
-              <div className="contador">
+              <div className="produto-acoes">
 
                 <button onClick={() => diminuir(p)}>-</button>
 
-                <span>{itemCarrinho?.quantidade || 0}</span>
+                <span>{item?.quantidade || 0}</span>
 
-                <button onClick={() => adicionar(p)}>+</button>
+                <button
+                  className={animando === p._id ? "pulse" : ""}
+                  onClick={() => adicionar(p)}
+                >
+                  +
+                </button>
 
               </div>
 
@@ -251,13 +235,9 @@ export default function Sale() {
 
             {carrinho.map(item => (
               <div key={item._id} className="carrinho-linha">
-
                 <span>{item.nome}</span>
-
                 <span>{item.quantidade}x</span>
-
                 <span>R$ {(item.preco * item.quantidade).toFixed(2)}</span>
-
               </div>
             ))}
 
@@ -275,4 +255,3 @@ export default function Sale() {
     </div>
   );
 }
-//atualizar
