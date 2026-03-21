@@ -18,21 +18,31 @@ export default function Navbar() {
 
       <div id="brand">BODEGA EAC</div>
 
-      {/* MENU ICON MOBILE */}
-      <div className="menu-icon" onClick={() => setMenuOpen(!menuOpen)}>
-        ☰
-      </div>
-
-      {/* MENU */}
-      <div className={`nav-center ${menuOpen ? "open" : ""}`}>
-
+      {/* MENU CENTRAL */}
+      <div className="nav-center">
         <button onClick={() => navigate("/home")}>Home</button>
         <button onClick={() => navigate("/dashboard")}>Dashboard</button>
         <button onClick={() => navigate("/sale")}>Venda</button>
         <button onClick={() => navigate("/product")}>Produtos</button>
+      </div>
 
+      {/* DIREITA */}
+      <div className="nav-right">
         <button onClick={handleLogout}>Sair</button>
+      </div>
 
+      {/* MOBILE ICON */}
+      <div className="menu-icon" onClick={() => setMenuOpen(!menuOpen)}>
+        ☰
+      </div>
+
+      {/* MENU MOBILE */}
+      <div className={`mobile-menu ${menuOpen ? "open" : ""}`}>
+        <button onClick={() => navigate("/home")}>Home</button>
+        <button onClick={() => navigate("/dashboard")}>Dashboard</button>
+        <button onClick={() => navigate("/sale")}>Venda</button>
+        <button onClick={() => navigate("/product")}>Produtos</button>
+        <button onClick={handleLogout}>Sair</button>
       </div>
 
     </nav>

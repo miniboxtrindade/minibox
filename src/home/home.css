@@ -358,14 +358,17 @@ input::placeholder {
   justify-content: space-between;
 
   padding: 0 20px;
+  z-index: 1000;
+}
+
+/* BRAND */
+#brand {
+  color: white;
+  font-weight: bold;
 }
 
 /* CENTRO */
 .nav-center {
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
-
   display: flex;
   gap: 10px;
 }
@@ -375,7 +378,7 @@ input::placeholder {
   display: flex;
 }
 
-/* BOTÕES PADRÃO */
+/* BOTÕES */
 #home-bar button {
   background: transparent;
   color: white;
@@ -385,7 +388,7 @@ input::placeholder {
   cursor: pointer;
 }
 
-/* BOTÃO SAIR DIFERENTE */
+/* BOTÃO SAIR */
 .nav-right button {
   border-color: #dc3545;
   color: #dc3545;
@@ -394,4 +397,54 @@ input::placeholder {
 .nav-right button:hover {
   background: #dc3545;
   color: white;
+}
+
+/* MOBILE ICON */
+.menu-icon {
+  display: none;
+  color: white;
+  font-size: 22px;
+  cursor: pointer;
+}
+
+/* MENU MOBILE */
+.mobile-menu {
+  display: none;
+}
+
+/* =========================
+   MOBILE
+========================= */
+@media (max-width: 768px) {
+
+  .nav-center,
+  .nav-right {
+    display: none;
+  }
+
+  .menu-icon {
+    display: block;
+  }
+
+  .mobile-menu {
+    position: absolute;
+    top: 70px;
+    left: 0;
+
+    width: 100%;
+    background: #151551;
+
+    display: none;
+    flex-direction: column;
+  }
+
+  .mobile-menu.open {
+    display: flex;
+  }
+
+  .mobile-menu button {
+    width: 100%;
+    padding: 15px;
+    border-top: 1px solid rgba(255,255,255,0.1);
+  }
 }
