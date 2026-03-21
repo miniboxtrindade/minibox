@@ -210,9 +210,9 @@ input::placeholder {
 
 .produto-item {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: space-between;
-  gap: 10px;
+  text-align: center;
 
   background: white;
   padding: 14px;
@@ -224,6 +224,7 @@ input::placeholder {
 
 /* ESQUERDA */
 .produto-info {
+  align-items: center;
   display: flex;
   flex-direction: column;
 }
@@ -243,7 +244,8 @@ input::placeholder {
   font-weight: bold;
   color: #151551;
   font-size: 15px;
-  text-align: right;
+  text-align: center;
+  margin-top: 5px;
 }
 
 /* DIREITA (CONTROLE) */
@@ -455,12 +457,14 @@ input::placeholder {
   }
 
   .produto-info {
+    align-items: center;
     width: 100%;
   }
 
   .produto-preco {
     width: 100%;
-    text-align: right;
+    text-align: center;
+    margin-top: 5px;
   }
 
   .controle {
@@ -493,4 +497,18 @@ input::placeholder {
     padding: 15px;
   }
 
+}
+
+.mobile-menu button {
+  border-top: 1px solid rgba(255,255,255,0.1);
+}
+
+button {
+  min-height: 44px;
+}
+
+@media (max-width: 768px) {
+  .home-content {
+    padding-bottom: 180px;
+  }
 }
