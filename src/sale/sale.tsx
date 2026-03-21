@@ -1,17 +1,14 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Cookies from "js-cookie";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
-interface Item {
+interface Produto {
+  _id: string;
   nome: string;
   preco: number;
-}
-
-interface Cliente {
-  nome: string;
-  saldo: number;
+  quantidade: number;
 }
 
 export default function Sale() {
@@ -20,19 +17,15 @@ export default function Sale() {
   const token = Cookies.get("token");
 
   const [codigo, setCodigo] = useState("");
-  const [cliente, setCliente] = useState<Cliente | null>(null);
-
-  const [produto, setProduto] = useState("");
-  const [preco, setPreco] = useState("");
-  const [itens, setItens] = useState<Item[]>([]);
+  const [cliente, setCliente] = useState<any>(null);
+  const [produtos, setProdutos] = useState<Produto[]>([]);
+  const [carrinho, setCarrinho] = useState<Produto[]>([]);
 
   /* =========================
      BUSCAR CLIENTE
   ========================= */
 
   const buscarCliente = async () => {
-
-    if (!codigo) return;
 
     const response = await fetch(`${API_URL}/api/client/${codigo}`, {
       headers: { Authorization: `Bearer ${token}` }
@@ -42,6 +35,7 @@ export default function Sale() {
 
     if (response.ok) {
       setCliente(data);
+      buscarProdutos(); // 🔥 carrega produtos ao buscar cliente
     } else {
       alert("Cliente não encontrado");
       setCliente(null);
@@ -50,44 +44,50 @@ export default function Sale() {
   };
 
   /* =========================
-     ADICIONAR ITEM
+     BUSCAR PRODUTOS
   ========================= */
 
-  const adicionarItem = () => {
+  const buscarProdutos = async () => {
 
-    if (!produto || !preco) return;
+    const response = await fetch(`${API_URL}/api/product`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
 
-    setItens([...itens, {
-      nome: produto,
-      preco: Number(preco)
-    }]);
+    const data = await response.json();
 
-    setProduto("");
-    setPreco("");
+    if (response.ok) {
+      setProdutos(data);
+    }
+
   };
-
-  const removerItem = (index: number) => {
-    const novos = itens.filter((_, i) => i !== index);
-    setItens(novos);
-  };
-
-  const total = itens.reduce((acc, i) => acc + i.preco, 0);
 
   /* =========================
-     FINALIZAR VENDA
+     CARRINHO
   ========================= */
 
-  const finalizarCompra = async () => {
+  const adicionar = (produto: Produto) => {
 
-    if (!cliente) {
-      alert("Busque um cliente primeiro");
-      return;
-    }
+    setCarrinho([...carrinho, produto]);
 
-    if (!itens.length) {
-      alert("Adicione itens");
-      return;
-    }
+  };
+
+  const remover = (index: number) => {
+
+    setCarrinho(carrinho.filter((_, i) => i !== index));
+
+  };
+
+  const total = carrinho.reduce((acc, item) => acc + item.preco, 0);
+
+  /* =========================
+     FINALIZAR
+  ========================= */
+
+  const finalizar = async () => {
+
+    const itensFormatados = carrinho.map(i => ({
+      id: i._id
+    }));
 
     const response = await fetch(`${API_URL}/api/sale`, {
       method: "POST",
@@ -96,55 +96,43 @@ export default function Sale() {
       },
       body: JSON.stringify({
         codigo: Number(codigo),
-        itens
+        itens: itensFormatados
       })
     });
 
     const data = await response.json();
 
     if (response.ok) {
-      alert("Compra realizada!");
-
-      setItens([]);
-      buscarCliente(); // atualiza saldo
+      alert("Venda concluída!");
+      setCarrinho([]);
+      buscarCliente();
+      buscarProdutos();
     } else {
       alert(data.message);
     }
 
   };
 
-  /* =========================
-     LOGOUT
-  ========================= */
-
-  const handleLogout = () => {
-    Cookies.remove("token");
-    navigate("/login");
-  };
+  /* ========================= */
 
   return (
 
     <div>
 
-      {/* NAVBAR */}
       <nav id="home-bar">
-
         <div id="brand">BODEGA EAC</div>
 
         <div id="options">
           <button onClick={() => navigate("/home")}>Home</button>
           <button onClick={() => navigate("/sale")}>Venda</button>
           <button onClick={() => navigate("/product")}>Produtos</button>
-          <button onClick={handleLogout}>Sair</button>
         </div>
-
       </nav>
 
       <div className="home-content">
 
         <h2>Venda</h2>
 
-        {/* BUSCA CLIENTE */}
         <div className="box">
 
           <input
@@ -159,55 +147,53 @@ export default function Sale() {
 
         </div>
 
-        {/* CLIENTE */}
         {cliente && (
           <div className="cliente-card">
             <h3>{cliente.nome}</h3>
-            <p>Saldo: R$ {cliente.saldo.toFixed(2)}</p>
+            <p>Saldo: R$ {cliente.saldo}</p>
           </div>
         )}
 
-        {/* ADICIONAR PRODUTO */}
-        <h3>Adicionar item</h3>
+        {/* PRODUTOS */}
+        {produtos.map((p) => (
 
-        <div className="box">
+          <div key={p._id} className="cliente-card">
 
-          <input
-            placeholder="Produto"
-            value={produto}
-            onChange={(e) => setProduto(e.target.value)}
-          />
+            <h3>{p.nome}</h3>
 
-          <input
-            placeholder="Preço"
-            value={preco}
-            onChange={(e) => setPreco(e.target.value)}
-          />
+            <p>Estoque: {p.quantidade}</p>
+            <p>R$ {p.preco}</p>
 
-          <button onClick={adicionarItem}>
-            Adicionar
-          </button>
+            <button
+              className="btn-green"
+              onClick={() => adicionar(p)}
+              disabled={p.quantidade <= 0}
+            >
+              +
+            </button>
 
-        </div>
+          </div>
 
-        {/* LISTA DE ITENS */}
-        {itens.length > 0 && (
+        ))}
+
+        {/* CARRINHO */}
+        {carrinho.length > 0 && (
 
           <div className="cliente-card">
 
             <h3>Carrinho</h3>
 
-            {itens.map((item, index) => (
-              <div key={index} style={{ display: "flex", justifyContent: "space-between" }}>
-                <span>{item.nome} - R$ {item.preco}</span>
-                <button onClick={() => removerItem(index)}>X</button>
+            {carrinho.map((item, i) => (
+              <div key={i}>
+                {item.nome} - R$ {item.preco}
+                <button onClick={() => remover(i)}>X</button>
               </div>
             ))}
 
-            <h2>Total: R$ {total.toFixed(2)}</h2>
+            <h2>Total: R$ {total}</h2>
 
-            <button className="btn-green" onClick={finalizarCompra}>
-              Finalizar Compra
+            <button className="btn-green" onClick={finalizar}>
+              Finalizar Venda
             </button>
 
           </div>
