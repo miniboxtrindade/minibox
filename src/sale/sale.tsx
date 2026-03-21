@@ -134,6 +134,7 @@ export default function Sale() {
         <div id="options">
           <button onClick={() => navigate("/home")}>Home</button>
           <button onClick={() => navigate("/sale")}>Venda</button>
+          <button onClick={() => navigate("/product")}>Produtos</button>
           <button onClick={handleLogout}>Sair</button>
         </div>
 
