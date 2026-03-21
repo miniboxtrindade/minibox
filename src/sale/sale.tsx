@@ -1,107 +1,73 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import Cookies from "js-cookie";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
-interface Produto {
-  _id: string;
-  nome: string;
-  preco: number;
-  quantidade: number;
-}
+const categorias = {
+  ALIMENTO: "🍔 Alimentos",
+  BEBIDA: "🥤 Bebidas",
+  DOCE: "🍫 Doces"
+};
 
 export default function Sale() {
 
   const navigate = useNavigate();
-  const token = Cookies.get("token");
 
   const [codigo, setCodigo] = useState("");
   const [cliente, setCliente] = useState<any>(null);
-  const [produtos, setProdutos] = useState<Produto[]>([]);
+  const [produtos, setProdutos] = useState<any[]>([]);
   const [carrinho, setCarrinho] = useState<any[]>([]);
-  const [animando, setAnimando] = useState<string | null>(null);
 
-  /* ========================= */
   const buscarCliente = async () => {
+    const res = await fetch(`${API_URL}/api/client/${codigo}`);
+    const data = await res.json();
 
-    const response = await fetch(`${API_URL}/api/client/${codigo}`, {
-      headers: { Authorization: `Bearer ${token}` },
-      cache: "no-store"
-    });
-
-    const data = await response.json();
-
-    if (response.ok) {
+    if (res.ok) {
       setCliente(data);
       buscarProdutos();
     } else {
       alert("Cliente não encontrado");
       setCliente(null);
     }
-
   };
 
   const buscarProdutos = async () => {
-
-    const response = await fetch(`${API_URL}/api/product`, {
-      headers: { Authorization: `Bearer ${token}` },
-      cache: "no-store"
-    });
-
-    const data = await response.json();
-
-    if (response.ok) {
-      setProdutos(data);
-    }
-
+    const res = await fetch(`${API_URL}/api/product`);
+    const data = await res.json();
+    setProdutos(data);
   };
 
-  /* ========================= */
   useEffect(() => {
-
     const interval = setInterval(() => {
       if (cliente) {
         buscarProdutos();
-        buscarCliente();
       }
     }, 3000);
 
     return () => clearInterval(interval);
-
   }, [cliente]);
 
-  /* ========================= */
-  const adicionar = (produto: Produto) => {
+  const adicionar = (p: any) => {
 
-    setAnimando(produto._id);
-    setTimeout(() => setAnimando(null), 200);
-
-    const item = carrinho.find(i => i._id === produto._id);
-    const qtd = item ? item.quantidade : 0;
-
-    if (qtd >= produto.quantidade) {
-      alert("Sem estoque suficiente");
-      return;
-    }
+    const item = carrinho.find(i => i._id === p._id);
 
     if (item) {
       setCarrinho(carrinho.map(i =>
-        i._id === produto._id
+        i._id === p._id
           ? { ...i, quantidade: i.quantidade + 1 }
           : i
       ));
     } else {
-      setCarrinho([...carrinho, { ...produto, quantidade: 1 }]);
+      setCarrinho([...carrinho, { ...p, quantidade: 1 }]);
     }
   };
 
-  const diminuir = (produto: Produto) => {
+  const diminuir = (p: any) => {
 
     setCarrinho(
       carrinho
         .map(i =>
-          i._id === produto._id
+          i._id === p._id
             ? { ...i, quantidade: i.quantidade - 1 }
             : i
         )
@@ -114,42 +80,30 @@ export default function Sale() {
     0
   );
 
-  /* ========================= */
   const finalizar = async () => {
-
-    if (!cliente) return alert("Busque um cliente");
-
-    if (total > cliente.saldo) {
-      alert("Saldo insuficiente");
-      return;
-    }
-
-    const itens = carrinho.flatMap(item =>
-      Array(item.quantidade).fill({ id: item._id })
-    );
 
     const response = await fetch(`${API_URL}/api/sale`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json"
+      },
       body: JSON.stringify({
         codigo: Number(codigo),
-        itens
+        itens: carrinho
       })
     });
 
     const data = await response.json();
 
     if (response.ok) {
-      alert("Venda concluída!");
+      alert("Venda realizada!");
       setCarrinho([]);
       buscarCliente();
-      buscarProdutos();
     } else {
       alert(data.message);
     }
   };
 
-  /* ========================= */
   return (
 
     <div>
@@ -183,48 +137,55 @@ export default function Sale() {
           </div>
         )}
 
-        {/* PRODUTOS */}
-        {produtos.map((p) => {
+        {/* PRODUTOS POR CATEGORIA */}
+        {Object.entries(categorias).map(([key, label]) => {
 
-          const item = carrinho.find(i => i._id === p._id);
+          const lista = produtos.filter(
+            p => p.categoria === key && p.quantidade > 0
+          );
+
+          if (!lista.length) return null;
 
           return (
-            <div
-              key={p._id}
-              className={`produto-card 
-                ${item ? "ativo" : ""} 
-                ${p.quantidade <= 3 ? "baixo" : ""}
-              `}
-            >
+            <div key={key} className="categoria">
 
-              <div className="produto-info">
-                <span className="produto-nome">{p.nome}</span>
-                <span className="produto-estoque">
-                  Estoque: {p.quantidade}
-                </span>
-              </div>
+              <h3>{label}</h3>
 
-              <div className="produto-preco">
-                R$ {p.preco.toFixed(2)}
-              </div>
+              {lista.map((p) => {
 
-              <div className="produto-acoes">
+                const item = carrinho.find(i => i._id === p._id);
 
-                <button onClick={() => diminuir(p)}>-</button>
+                return (
+                  <div key={p._id} className="produto-item">
 
-                <span>{item?.quantidade || 0}</span>
+                    <div className="info">
+                      <span className="nome">{p.nome}</span>
+                      <span className={`estoque ${p.quantidade <= 3 ? "baixo" : ""}`}>
+                        {p.quantidade} disponíveis
+                      </span>
+                    </div>
 
-                <button
-                  className={animando === p._id ? "pulse" : ""}
-                  onClick={() => adicionar(p)}
-                >
-                  +
-                </button>
+                    <div className="preco">
+                      R$ {p.preco.toFixed(2)}
+                    </div>
 
-              </div>
+                    <div className="controle">
+
+                      <button onClick={() => diminuir(p)}>-</button>
+
+                      <span>{item?.quantidade || 0}</span>
+
+                      <button onClick={() => adicionar(p)}>+</button>
+
+                    </div>
+
+                  </div>
+                );
+              })}
 
             </div>
           );
+
         })}
 
         {/* CARRINHO */}
