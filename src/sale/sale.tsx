@@ -182,36 +182,36 @@ export default function Sale() {
 
               {lista.map((p) => {
 
-                const item = carrinho.find(i => i._id === p._id);
+  const item = carrinho.find(i => i._id === p._id);
 
-                return (
-                  <div key={p._id} className="produto-item">
+  return (
+    <div key={p._id} className="produto-item">
 
-                    <div className="produto-info">
-                      <span className="produto-nome">{p.nome}</span>
+      <div className="produto-info">
+        <span className="produto-nome">{p.nome}</span>
 
-                      <span className={`produto-estoque ${p.quantidade <= 3 ? "baixo" : ""}`}>
-                        {p.quantidade} disponíveis
-                      </span>
-                    </div>
+        <span className="produto-estoque">
+          {p.quantidade} disponíveis
+        </span>
+      </div>
 
-                    <div className="produto-preco">
-                      R$ {p.preco.toFixed(2)}
-                    </div>
+      <div className="produto-preco">
+        R$ {p.preco.toFixed(2)}
+      </div>
 
-                    <div className="controle">
-                      <button onClick={() => diminuir(p)}>-</button>
+      <div className="controle">
+        <button onClick={() => diminuir(p)}>-</button>
 
-                      <span className="qtd">
-                        {item?.quantidade || 0}
-                      </span>
+        <span className="qtd">
+          {item?.quantidade || 0}
+        </span>
 
-                      <button onClick={() => adicionar(p)}>+</button>
-                    </div>
+        <button onClick={() => adicionar(p)}>+</button>
+      </div>
 
-                  </div>
-                );
-              })}
+    </div>
+  );
+})}
 
             </div>
           );
