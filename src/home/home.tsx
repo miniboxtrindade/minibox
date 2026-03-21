@@ -280,12 +280,12 @@ const Home = () => {
         <div id="brand">BODEGA EAC</div>
         <div id="options">
 
-          <button onClick={() => navigate("/dashboard")}>
-            Dashboard
-          </button>
-          
           <button onClick={() => navigate("/home")}>
             Home
+          </button>
+
+          <button onClick={() => navigate("/dashboard")}>
+            Dashboard
           </button>
 
           <button onClick={() => navigate("/sale")}>

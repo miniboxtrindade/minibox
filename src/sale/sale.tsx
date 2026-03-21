@@ -1,7 +1,10 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import Cookies from "js-cookie";
 
 const API_URL = import.meta.env.VITE_API_URL;
+
+
 
 const categorias = {
   ALIMENTO: "🍔 Alimentos",
@@ -10,7 +13,13 @@ const categorias = {
   ARTIGO_RELIGIOSO: "🙇🏻‍♂️ Artigos Religiosos"
 };
 
+
 export default function Sale() {
+
+    const handleLogout = () => {
+    Cookies.remove("token");
+    navigate("/login");
+    };
 
   const navigate = useNavigate();
 
@@ -141,6 +150,7 @@ export default function Sale() {
           <button onClick={() => navigate("/sale")}>Venda</button>
           <button onClick={() => navigate("/product")}>Produtos</button>
           <button onClick={() => navigate("/dashboard")}>DashBoard</button>
+          <button onClick={handleLogout}>Sair</button>
         </div>
       </nav>
 
