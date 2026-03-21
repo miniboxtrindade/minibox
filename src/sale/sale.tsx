@@ -6,7 +6,8 @@ const API_URL = import.meta.env.VITE_API_URL;
 const categorias = {
   ALIMENTO: "🍔 Alimentos",
   BEBIDA: "🥤 Bebidas",
-  DOCE: "🍫 Doces"
+  DOCE: "🍫 Doces",
+  ARTIGO_RELIGIOSO: "🙇🏻‍♂️ Artigos Religiosos"
 };
 
 export default function Sale() {
