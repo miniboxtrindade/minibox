@@ -423,8 +423,8 @@ input::placeholder {
   }
 
   .controle button {
-    width: 28px;
-    height: 28px;
+    width: 26px;
+    height: 26px;
   }
 
   /* PRODUTOS EDIT */
@@ -520,8 +520,8 @@ button {
 }
 
 .produto-linha .controle button {
-  width: 26px;
-  height: 26px;
+  width: 26px !important;
+  height: 26px !important;
 
   border-radius: 50%;
   border: none;
