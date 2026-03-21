@@ -194,12 +194,6 @@ input::placeholder {
     flex-direction: column;
   }
 
-  .produto-item {
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 10px;
-}
-
   .controle {
     justify-content: flex-end;
   }
@@ -215,10 +209,10 @@ input::placeholder {
 ========================= */
 
 .produto-item {
-  display: grid;
-  grid-template-columns: 1fr auto auto;
+  display: flex;
   align-items: center;
-  gap: 12px;
+  justify-content: space-between;
+  gap: 10px;
 
   background: white;
   padding: 14px;
@@ -250,7 +244,6 @@ input::placeholder {
   color: #151551;
   font-size: 15px;
   text-align: right;
-  min-width: 80px;
 }
 
 /* DIREITA (CONTROLE) */
@@ -412,11 +405,9 @@ input::placeholder {
   display: none;
 }
 
-/* =========================
-   MOBILE
-========================= */
 @media (max-width: 768px) {
 
+  /* NAVBAR */
   .nav-center,
   .nav-right {
     display: none;
@@ -430,7 +421,6 @@ input::placeholder {
     position: absolute;
     top: 70px;
     left: 0;
-
     width: 100%;
     background: #151551;
 
@@ -445,14 +435,7 @@ input::placeholder {
   .mobile-menu button {
     width: 100%;
     padding: 15px;
-    border-top: 1px solid rgba(255,255,255,0.1);
   }
-}
-
-/* =========================
-   VENDA MOBILE
-========================= */
-@media (max-width: 768px) {
 
   /* BUSCA */
   .box {
@@ -464,15 +447,20 @@ input::placeholder {
     width: 100%;
   }
 
-  /* PRODUTOS */
+  /* PRODUTOS (CORRETO) */
   .produto-item {
     flex-direction: column;
-    align-items: flex-start;
+    align-items: stretch;
     gap: 10px;
   }
 
+  .produto-info {
+    width: 100%;
+  }
+
   .produto-preco {
-    align-self: flex-end;
+    width: 100%;
+    text-align: right;
   }
 
   .controle {
@@ -483,11 +471,11 @@ input::placeholder {
   .controle button {
     width: 40px;
     height: 40px;
-    font-size: 18px;
   }
 
-  .qtd {
-    font-size: 16px;
+  /* PRODUTOS EDIT */
+  .produto-edit-card {
+    grid-template-columns: 1fr;
   }
 
   /* CARRINHO */
@@ -497,56 +485,12 @@ input::placeholder {
     left: 0;
     width: 100%;
     border-radius: 0;
-
     z-index: 999;
   }
 
   .home-content {
     padding-bottom: 140px;
-  }
-
-  /* TOTAL */
-  .total {
-    font-size: 20px;
-  }
-
-  .btn-finalizar {
-    font-size: 18px;
-    padding: 16px;
-  }
-}
-
-/* =========================
-   PRODUTOS MOBILE
-========================= */
-@media (max-width: 768px) {
-
-  .produto-edit-card {
-    flex-direction: column;
-    gap: 10px;
-  }
-
-  .produto-edit-card input,
-  .produto-edit-card select,
-  .produto-edit-card button {
-    width: 100%;
-  }
-
-  .produto-edit-card button {
-    padding: 12px;
-    font-size: 16px;
-  }
-
-}
-
-@media (max-width: 768px) {
-
-  input {
-    font-size: 16px;
-  }
-
-  button {
-    min-height: 44px;
+    padding: 15px;
   }
 
 }
