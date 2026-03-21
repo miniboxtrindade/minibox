@@ -122,16 +122,21 @@ export default function Product() {
 
       {/* NAVBAR */}
       <nav id="home-bar">
-        <div id="brand">BODEGA EAC</div>
+  <div id="brand">BODEGA EAC</div>
 
-        <div id="options">
-          <button onClick={() => navigate("/home")}>Home</button>
-          <button onClick={() => navigate("/dashboard")}>Dashboard</button>
-          <button onClick={() => navigate("/sale")}>Venda</button>
-          <button onClick={() => navigate("/product")}>Produtos</button>
-          <button onClick={handleLogout}>Sair</button>
-        </div>
-      </nav>
+  {/* MENU CENTRAL */}
+  <div className="nav-center">
+    <button onClick={() => navigate("/home")}>Home</button>
+    <button onClick={() => navigate("/dashboard")}>Dashboard</button>
+    <button onClick={() => navigate("/sale")}>Venda</button>
+    <button onClick={() => navigate("/product")}>Produtos</button>
+  </div>
+
+  {/* DIREITA */}
+  <div className="nav-right">
+    <button onClick={handleLogout}>Sair</button>
+  </div>
+</nav>
 
       <div className="home-content">
 
