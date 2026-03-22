@@ -539,7 +539,9 @@ button {
   cursor: pointer;
 
   transition: all 0.2s ease;
+}
 
+.produto-linha .controle button:hover {
   transform: scale(1.15);
 }
 
