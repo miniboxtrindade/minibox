@@ -520,8 +520,10 @@ button {
 }
 
 .produto-linha .controle button {
-  width: 26px !important;
-  height: 26px !important;
+  min-height: unset !important;
+
+  width: 24px !important;
+  height: 24px !important;
 
   border-radius: 50%;
   border: none;
@@ -529,7 +531,7 @@ button {
   background: #151551;
   color: white;
 
-  font-size: 14px;
+  font-size: 12px;
   font-weight: bold;
 
   display: flex;
@@ -541,13 +543,10 @@ button {
   transition: all 0.2s ease;
 }
 
-.produto-linha .qtd {
-  min-width: 18px;
-  text-align: center;
-  font-size: 14px;
-  font-weight: bold;
+.produto-linha .controle button:hover {
+  transform: scale(1.1);
 }
 
-.controle button:active {
+.produto-linha .controle button:active {
   transform: scale(0.9);
 }
