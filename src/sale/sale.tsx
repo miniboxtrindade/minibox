@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import '../home/home.css';
 import Navbar from '../components/navbar';
 import { supabase, type Client, type Product } from '../lib/supabase';
 

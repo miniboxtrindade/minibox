@@ -1,116 +1,146 @@
-/* Reset */
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
+/* =========================
+   LOGIN — mobile-first
+========================= */
 
-/* Apenas a tela de login */
 #page {
-    position: fixed;          /* força ocupar tela inteira */
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    background: linear-gradient(135deg, #151551 0%, #2d2d8f 100%);
+  position: fixed;
+  inset: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 16px;
+  background: linear-gradient(135deg, var(--ejc-primary) 0%, #2d2d8f 100%);
+  overflow-y: auto;
 }
 
-/* Container principal */
 #login-container {
-    width: 90%;
-    max-width: 900px;
-    height: auto;
-    min-height: 450px;
-    background-color: white;
-    border-radius: 20px;
-    display: flex;
-    overflow: hidden;
-    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.25);
+  width: 100%;
+  max-width: 420px;
+  background-color: var(--ejc-white);
+  border-radius: var(--ejc-radius-lg);
+  display: flex;
+  flex-direction: column-reverse;
+  overflow: hidden;
+  box-shadow: var(--ejc-shadow-lg);
 }
 
-/* Lado esquerdo */
 #left-container {
-    width: 55%;
-    padding: 50px;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
+  width: 100%;
+  padding: 24px 22px 28px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 
 #left-container h2 {
-    font-size: 30px;
-    color: #151551;
-    margin-bottom: 30px;
-    text-align: center;
+  font-size: 22px;
+  color: var(--ejc-primary);
+  margin: 0 0 20px;
+  text-align: center;
+  line-height: 1.25;
 }
 
-/* Inputs */
+#form-login {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
 #form-login input {
-    width: 100%;
-    padding: 12px;
-    margin-bottom: 15px;
-    border-radius: 8px;
-    border: 1px solid #ddd;
-    font-size: 14px;
+  width: 100%;
+  padding: 12px;
+  border-radius: var(--ejc-radius-sm);
+  border: 1px solid var(--ejc-border);
+  font-size: 16px; /* evita zoom no iOS */
+  background: var(--ejc-white);
+  color: var(--ejc-text);
+  min-height: 44px;
 }
 
 #form-login input:focus {
-    outline: none;
-    border-color: #151551;
-    box-shadow: 0 0 8px rgba(21, 21, 81, 0.3);
+  outline: none;
+  border-color: var(--ejc-primary);
+  box-shadow: 0 0 0 3px rgba(21, 21, 81, 0.18);
 }
 
-/* Botão */
 #form-login button {
-    width: 100%;
-    padding: 12px;
-    border-radius: 8px;
-    border: none;
-    background-color: #151551;
-    color: white;
-    font-weight: bold;
-    cursor: pointer;
-    transition: 0.3s;
+  width: 100%;
+  padding: 13px;
+  border-radius: var(--ejc-radius-sm);
+  border: none;
+  background-color: var(--ejc-primary);
+  color: var(--ejc-white);
+  font-weight: 700;
+  font-size: 15px;
+  cursor: pointer;
+  transition: background 0.2s;
+  min-height: 48px;
 }
 
 #form-login button:hover {
-    background-color: #1f1fa8;
+  background-color: var(--ejc-primary-hover);
 }
 
-/* Lado direito */
+#form-login button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+#left-container p {
+  margin-top: 16px;
+  text-align: center;
+  font-size: 14px;
+  color: var(--ejc-text-muted);
+}
+
+#left-container p a {
+  color: var(--ejc-primary);
+  font-weight: 600;
+}
+
 #right-container {
-    width: 45%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    padding: 40px;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 26px 20px 12px;
+  background: linear-gradient(180deg, rgba(21, 21, 81, 0.06), transparent);
 }
 
-/* Logo */
 .login-logo {
-    width: 80%;
-    max-width: 280px;
-    object-fit: contain;
+  width: 140px;
+  max-width: 60%;
+  object-fit: contain;
 }
 
-/* RESPONSIVO */
-@media (max-width: 768px) {
-    #login-container {
-        flex-direction: column;
-        width: 95%;
-        border-radius: 15px;
-    }
+/* =========================
+   Tablet
+========================= */
+@media (min-width: 720px) {
+  #login-container {
+    flex-direction: row;
+    max-width: 880px;
+    min-height: 460px;
+  }
 
-    #left-container,
-    #right-container {
-        width: 100%;
-        padding: 30px;
-    }
+  #left-container {
+    width: 55%;
+    padding: 48px 44px;
+  }
 
-    .login-logo {
-        width: 150px;
-    }
+  #left-container h2 {
+    font-size: 28px;
+    margin-bottom: 28px;
+  }
+
+  #right-container {
+    width: 45%;
+    padding: 40px;
+    background: linear-gradient(180deg, rgba(21, 21, 81, 0.06), transparent);
+  }
+
+  .login-logo {
+    width: 80%;
+    max-width: 260px;
+  }
 }
