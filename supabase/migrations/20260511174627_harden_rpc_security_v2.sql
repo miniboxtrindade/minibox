@@ -8,7 +8,7 @@ create or replace function public.get_dashboard()
 returns table (
   total_recarga numeric,
   total_debito  numeric,
-  saldo_bodega  numeric,
+  saldo_minibox numeric,
   clientes      bigint,
   transacoes    bigint
 )

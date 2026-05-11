@@ -6,7 +6,7 @@ import { supabase } from "../lib/supabase";
 interface DashboardData {
   total_recarga: number;
   total_debito: number;
-  saldo_bodega: number;
+  saldo_minibox: number;
   clientes: number;
   transacoes: number;
 }
@@ -56,7 +56,7 @@ const Dashboard = () => {
 
       <div className="dashboard-content">
 
-        <h2>Dashboard da Bodega</h2>
+        <h2>Dashboard do Minibox</h2>
 
         <div className="cards">
           <div className="card">
@@ -70,8 +70,8 @@ const Dashboard = () => {
           </div>
 
           <div className="card">
-            <h3>Saldo da Bodega</h3>
-            <p className="valor azul">R$ {Number(dados.saldo_bodega).toFixed(2)}</p>
+            <h3>Saldo do Minibox</h3>
+            <p className="valor azul">R$ {Number(dados.saldo_minibox).toFixed(2)}</p>
           </div>
 
           <div className="card">

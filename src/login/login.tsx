@@ -38,7 +38,7 @@ export default function Login() {
         <div id="page">
             <div id="login-container">
                 <div id="left-container">
-                    <h2>Bem vindo a nossa Bodega EAC!</h2>
+                    <h2>Bem vindo ao nosso Minibox EJC!</h2>
 
                     <form id="form-login" onSubmit={sendRequest}>
                         <input
@@ -68,7 +68,7 @@ export default function Login() {
                 </div>
 
                 <div id="right-container">
-                    <img src="/logo-eac.png" alt="Logo Bodega" className="login-logo" />
+                    <img src="/logo-ejc.png" alt="Logo Minibox" className="login-logo" />
                 </div>
             </div>
         </div>

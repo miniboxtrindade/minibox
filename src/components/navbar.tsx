@@ -18,7 +18,7 @@ export default function Navbar() {
   return (
     <nav id="home-bar">
 
-      <div id="brand">BODEGA EAC</div>
+      <div id="brand">MINIBOX EJC</div>
 
       <div className="nav-center">
         <button onClick={() => navigate("/home")}>Home</button>

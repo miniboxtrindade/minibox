@@ -1,5 +1,5 @@
 -- =====================================================================
--- Bodega EJC — Supabase schema
+-- Minibox EJC — Supabase schema
 -- Rode este arquivo inteiro no SQL Editor do projeto Supabase.
 -- Idempotente: pode ser executado mais de uma vez sem erro.
 -- =====================================================================
@@ -253,7 +253,7 @@ create or replace function public.get_dashboard()
 returns table (
   total_recarga numeric,
   total_debito  numeric,
-  saldo_bodega  numeric,
+  saldo_minibox numeric,
   clientes      bigint,
   transacoes    bigint
 )
