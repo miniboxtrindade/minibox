@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import './signup.css';
 import { useNavigate } from 'react-router-dom';
+import { supabase } from '../lib/supabase';
 
 export default function SignUp() {
   const navigate = useNavigate();
@@ -8,46 +9,41 @@ export default function SignUp() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [cpf, setCpf] = useState('');
   const [loading, setLoading] = useState(false);
 
   const sendRequest = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!name || !email || !password || !cpf) {
+    if (!name || !email || !password) {
       alert('Preencha todos os campos');
       return;
     }
 
     setLoading(true);
 
-    try {
-      const response = await fetch('http://localhost:3000/api/user/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, email, pass: password, cpf }),
-      });
+    const { error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: { nome: name },
+      },
+    });
 
-      const json = await response.json();
+    setLoading(false);
 
-      if (response.ok) {
-        alert('Usuário cadastrado com sucesso!');
-        navigate('/login');
-      } else {
-        alert(json.message || 'Erro ao registrar');
-      }
-    } catch (error) {
-      alert('Erro ao conectar ao servidor');
-    } finally {
-      setLoading(false);
+    if (error) {
+      alert(error.message);
+      return;
     }
+
+    alert('Cadastro realizado. Verifique seu email se a confirmação estiver ativada.');
+    navigate('/login');
   };
 
   return (
     <div className="signup-container">
       <div className="signup-card">
 
-        {/* LADO ESQUERDO */}
         <div className="signup-left">
           <h1>Crie sua conta!</h1>
 
@@ -79,22 +75,12 @@ export default function SignUp() {
               required
             />
 
-            <input
-              className="signup-input"
-              type="text"
-              placeholder="CPF"
-              value={cpf}
-              onChange={(e) => setCpf(e.target.value)}
-              required
-            />
-
             <button className="signup-btn" type="submit" disabled={loading}>
               {loading ? 'Registrando...' : 'Registrar'}
             </button>
           </form>
         </div>
 
-        {/* LADO DIREITO */}
         <div className="signup-right">
           <p>Já possui conta?</p>
           <button className="login-btn" onClick={() => navigate('/login')}>

@@ -1,259 +1,144 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import './home.css';
-import { useNavigate } from 'react-router-dom';
-import Cookies from 'js-cookie';
 import * as XLSX from 'xlsx';
 import Navbar from '../components/navbar';
-
-interface Cliente {
-  codigo: number;
-  nome: string;
-  saldo: number;
-}
-
-interface Transacao {
-  tipo: string;
-  valor: number;
-  data: string;
-}
-
-const API_URL = import.meta.env.VITE_API_URL;
+import { supabase, type Client, type Transaction } from '../lib/supabase';
 
 const Home = () => {
 
-  const navigate = useNavigate();
-  const token = Cookies.get('token');
-
   const [codigoBusca, setCodigoBusca] = useState('');
-  const [cliente, setCliente] = useState<Cliente | null>(null);
+  const [cliente, setCliente] = useState<Client | null>(null);
   const [valor, setValor] = useState('');
   const [novoCodigo, setNovoCodigo] = useState('');
   const [novoNome, setNovoNome] = useState('');
-  const [historico, setHistorico] = useState<Transacao[]>([]);
+  const [historico, setHistorico] = useState<Transaction[]>([]);
 
-  /* =========================
-     LOGOUT
-  ========================= */
+  const definirValorRapido = (v: number) => setValor(String(v));
 
-  const handleLogout = () => {
-    Cookies.remove('token');
-    navigate('/login');
-  };
+  const buscarHistorico = async (clienteId: string) => {
+    const { data, error } = await supabase
+      .from('transactions')
+      .select('*')
+      .eq('cliente_id', clienteId)
+      .order('created_at', { ascending: false });
 
-  /* =========================
-     BOTÕES RÁPIDOS
-  ========================= */
-
-  const definirValorRapido = (v: number) => {
-    setValor(String(v));
-  };
-
-  /* =========================
-     BUSCAR HISTÓRICO
-  ========================= */
-
-  const buscarHistorico = async () => {
-
-    if (!codigoBusca) return;
-
-    try {
-
-      const response = await fetch(`${API_URL}/api/client/${codigoBusca}/history`, {
-        headers: { Authorization: `Bearer ${token}` },
-        cache: "no-store"
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        setHistorico(data);
-      } else {
-        setHistorico([]);
-      }
-
-    } catch {
-      console.log('Erro ao buscar histórico');
+    if (error) {
+      console.log('Erro ao buscar histórico', error.message);
+      setHistorico([]);
+      return;
     }
-
+    setHistorico((data ?? []) as Transaction[]);
   };
-
-  /* =========================
-     BUSCAR CLIENTE
-  ========================= */
 
   const buscarCliente = async () => {
-
     if (!codigoBusca) {
-      alert("Digite o código do crachá");
+      alert('Digite o código do crachá');
       return;
     }
 
-    try {
+    const { data, error } = await supabase
+      .from('clients')
+      .select('*')
+      .eq('codigo', Number(codigoBusca))
+      .maybeSingle();
 
-      const response = await fetch(`${API_URL}/api/client/${codigoBusca}`, {
-        headers: { Authorization: `Bearer ${token}` },
-        cache: "no-store"
-      });
-
-      if (response.status === 404) {
-
-        alert("Cliente não encontrado");
-
-        setCliente(null);
-        setHistorico([]);
-
-        return;
-      }
-
-      const data = await response.json();
-
-      setCliente(data);
-      await buscarHistorico();
-
-    } catch (error) {
-
-      console.log(error);
-      alert("Erro ao buscar cliente");
-
+    if (error) {
+      alert('Erro ao buscar cliente');
+      return;
+    }
+    if (!data) {
+      alert('Cliente não encontrado');
+      setCliente(null);
+      setHistorico([]);
+      return;
     }
 
+    setCliente(data as Client);
+    await buscarHistorico((data as Client).id);
   };
 
-  /* =========================
-     ATUALIZAÇÃO AUTOMÁTICA
-  ========================= */
-
+  // Realtime: atualiza saldo do cliente em tela ao detectar mudança
   useEffect(() => {
+    if (!cliente) return;
 
-    if (!codigoBusca) return;
+    const channel = supabase
+      .channel(`client-${cliente.id}`)
+      .on(
+        'postgres_changes',
+        { event: 'UPDATE', schema: 'public', table: 'clients', filter: `id=eq.${cliente.id}` },
+        (payload) => setCliente(payload.new as Client),
+      )
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'transactions', filter: `cliente_id=eq.${cliente.id}` },
+        () => buscarHistorico(cliente.id),
+      )
+      .subscribe();
 
-    const interval = setInterval(() => {
-      buscarCliente();
-    }, 3000);
-
-    return () => clearInterval(interval);
-
-  }, [codigoBusca]);
-
-  /* =========================
-     RECARREGAR
-  ========================= */
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [cliente?.id]);
 
   const recarregar = async () => {
-
+    if (!cliente) return;
     if (!valor || Number(valor) <= 0) {
-      alert("Digite um valor válido");
+      alert('Digite um valor válido');
       return;
     }
 
-    try {
+    const { error } = await supabase.rpc('recarregar_saldo', {
+      p_codigo: cliente.codigo,
+      p_valor: Number(valor),
+    });
 
-      const response = await fetch(`${API_URL}/api/client/${codigoBusca}/recharge`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify({ valor: Number(valor) })
-      });
-
-      if (!response.ok) {
-        const data = await response.json();
-        alert(data.message);
-      }
-
-      setValor('');
-      await buscarCliente();
-
-    } catch {
-      alert('Erro ao recarregar saldo');
+    if (error) {
+      alert(error.message);
+      return;
     }
-
+    setValor('');
   };
-
-  /* =========================
-     DEBITAR
-  ========================= */
 
   const debitar = async () => {
-
+    if (!cliente) return;
     if (!valor || Number(valor) <= 0) {
-      alert("Digite um valor válido");
+      alert('Digite um valor válido');
       return;
     }
 
-    try {
+    const { error } = await supabase.rpc('debitar_saldo', {
+      p_codigo: cliente.codigo,
+      p_valor: Number(valor),
+    });
 
-      const response = await fetch(`${API_URL}/api/client/${codigoBusca}/debit`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify({ valor: Number(valor) })
-      });
-
-      if (!response.ok) {
-        const data = await response.json();
-        alert(data.message);
-      }
-
-      setValor('');
-      await buscarCliente();
-
-    } catch {
-      alert('Erro ao debitar saldo');
+    if (error) {
+      alert(error.message);
+      return;
     }
-
+    setValor('');
   };
-
-  /* =========================
-     CADASTRAR CLIENTE
-  ========================= */
 
   const cadastrarCliente = async () => {
-
     if (!novoCodigo || !novoNome) {
-      alert("Preencha os campos");
+      alert('Preencha os campos');
       return;
     }
 
-    try {
+    const { error } = await supabase
+      .from('clients')
+      .insert({ codigo: Number(novoCodigo), nome: novoNome });
 
-      const response = await fetch(`${API_URL}/api/client`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          codigo: Number(novoCodigo),
-          nome: novoNome
-        })
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        alert('Cliente cadastrado com sucesso!');
-        setNovoCodigo('');
-        setNovoNome('');
-      } else {
-        alert(data.message || 'Erro ao cadastrar cliente');
-      }
-
-    } catch {
-      alert('Erro de conexão com o servidor');
+    if (error) {
+      alert(error.message);
+      return;
     }
 
+    alert('Cliente cadastrado com sucesso!');
+    setNovoCodigo('');
+    setNovoNome('');
   };
 
-  /* =========================
-     EXPORTAR EXCEL
-  ========================= */
-
   const exportarExcel = () => {
-
     if (!historico.length) {
       alert('Sem histórico para exportar');
       return;
@@ -262,29 +147,25 @@ const Home = () => {
     const dadosFormatados = historico.map((item) => ({
       Tipo: item.tipo,
       Valor: item.valor,
-      Data: new Date(item.data).toLocaleString()
+      Data: new Date(item.created_at).toLocaleString(),
     }));
 
     const ws = XLSX.utils.json_to_sheet(dadosFormatados);
     const wb = XLSX.utils.book_new();
-
     XLSX.utils.book_append_sheet(wb, ws, 'Relatorio');
-
     XLSX.writeFile(wb, `relatorio_cliente_${codigoBusca}.xlsx`);
   };
 
   return (
-
     <div className="home-page">
-    
-          <Navbar />
+
+      <Navbar />
 
       <div className="home-content">
 
         <h2>Buscar Cliente</h2>
 
         <div className="box">
-
           <input
             type="number"
             inputMode="numeric"
@@ -292,21 +173,16 @@ const Home = () => {
             value={codigoBusca}
             onChange={(e) => setCodigoBusca(e.target.value)}
           />
-
-          <button onClick={buscarCliente}>
-            Buscar
-          </button>
-
+          <button onClick={buscarCliente}>Buscar</button>
         </div>
 
         {cliente && (
           <>
             <div className="cliente-card">
-
               <h3>{cliente.nome}</h3>
 
               <p className="saldo">
-                Saldo: R$ {cliente.saldo.toFixed(2)}
+                Saldo: R$ {Number(cliente.saldo).toFixed(2)}
               </p>
 
               <input
@@ -325,33 +201,19 @@ const Home = () => {
               </div>
 
               <div className="actions">
-
-                <button className="btn-green" onClick={recarregar}>
-                  Recarregar
-                </button>
-
-                <button className="btn-red" onClick={debitar}>
-                  Debitar
-                </button>
-
+                <button className="btn-green" onClick={recarregar}>Recarregar</button>
+                <button className="btn-red" onClick={debitar}>Debitar</button>
               </div>
-
             </div>
 
             {historico.length > 0 && (
-
               <div className="historico">
-
                 <div className="historico-header">
                   <h3>Histórico</h3>
-
-                  <button onClick={exportarExcel}>
-                    Exportar Excel
-                  </button>
+                  <button onClick={exportarExcel}>Exportar Excel</button>
                 </div>
 
                 <table>
-
                   <thead>
                     <tr>
                       <th>Tipo</th>
@@ -359,21 +221,17 @@ const Home = () => {
                       <th>Data</th>
                     </tr>
                   </thead>
-
                   <tbody>
-                    {historico.map((item, index) => (
-                      <tr key={index}>
+                    {historico.map((item) => (
+                      <tr key={item.id}>
                         <td>{item.tipo}</td>
-                        <td>R$ {item.valor.toFixed(2)}</td>
-                        <td>{new Date(item.data).toLocaleString()}</td>
+                        <td>R$ {Number(item.valor).toFixed(2)}</td>
+                        <td>{new Date(item.created_at).toLocaleString()}</td>
                       </tr>
                     ))}
                   </tbody>
-
                 </table>
-
               </div>
-
             )}
           </>
         )}
@@ -381,7 +239,6 @@ const Home = () => {
         <h2>Cadastrar Novo Cliente</h2>
 
         <div className="box">
-
           <input
             type="number"
             inputMode="numeric"
@@ -389,22 +246,16 @@ const Home = () => {
             value={novoCodigo}
             onChange={(e) => setNovoCodigo(e.target.value)}
           />
-
           <input
             type="text"
             placeholder="Nome"
             value={novoNome}
             onChange={(e) => setNovoNome(e.target.value)}
           />
-
-          <button onClick={cadastrarCliente}>
-            Cadastrar
-          </button>
-
+          <button onClick={cadastrarCliente}>Cadastrar</button>
         </div>
 
       </div>
-
     </div>
   );
 };

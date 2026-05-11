@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import './login.css';
 import { useNavigate } from 'react-router-dom';
-import Cookies from 'js-cookie';
+import { supabase } from '../lib/supabase';
 
 export default function Login() {
     const navigate = useNavigate();
@@ -19,28 +19,19 @@ export default function Login() {
 
         setLoading(true);
 
-        try {
-            const response = await fetch(`${import.meta.env.VITE_API_URL}/api/user/login`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ email, pass: password }),
-            });
+        const { error } = await supabase.auth.signInWithPassword({
+            email,
+            password,
+        });
 
-            const json = await response.json();
+        setLoading(false);
 
-            if (response.ok) {
-                Cookies.set('token', json.token, { expires: 1 });
-                navigate('/home'); 
-            } else {
-                alert(json.message || 'Login failed');
-            }
-        } catch (error) {
-            alert('Erro ao conectar com servidor');
-        } finally {
-            setLoading(false);
+        if (error) {
+            alert(error.message);
+            return;
         }
+
+        navigate('/home');
     };
 
     return (
@@ -53,7 +44,7 @@ export default function Login() {
                         <input
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
-                            type="text"
+                            type="email"
                             placeholder="Email"
                             required
                         />
@@ -70,6 +61,10 @@ export default function Login() {
                             {loading ? 'Entrando...' : 'Login'}
                         </button>
                     </form>
+
+                    <p style={{ marginTop: 16 }}>
+                        Não tem conta? <a href="/signup">Cadastre-se</a>
+                    </p>
                 </div>
 
                 <div id="right-container">

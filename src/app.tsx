@@ -1,30 +1,39 @@
-import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import './app.css';
 
+import { AuthProvider, PrivateRoute } from './lib/auth';
 import Login from './login/login';
+import SignUp from './sign-up/signup';
 import Home from './home/home';
 import Dashboard from './dashboard/dashboard';
 import Sale from './sale/sale';
 import Product from './product/product';
 
-console.log('✅ App.tsx carregado');
-
-const App: React.FC = () => {
+const App = () => {
   return (
-    <Router>
-      <Routes>
-        <Route path="/" element={<Navigate to="/login" replace />} />
+    <AuthProvider>
+      <Router>
+        <Routes>
+          <Route path="/" element={<Navigate to="/login" replace />} />
 
-        <Route path="/login" element={<Login />} />
-        <Route path="/home" element={<Home />} />
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/sale" element={<Sale />} />
-        <Route path="/product" element={<Product />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/signup" element={<SignUp />} />
 
-        <Route path="*" element={<h1>404 - Página não encontrada</h1>} />
-      </Routes>
-    </Router>
+          <Route path="/home" element={<PrivateRoute><Home /></PrivateRoute>} />
+          <Route path="/sale" element={<PrivateRoute><Sale /></PrivateRoute>} />
+          <Route
+            path="/dashboard"
+            element={<PrivateRoute requireRole="admin"><Dashboard /></PrivateRoute>}
+          />
+          <Route
+            path="/product"
+            element={<PrivateRoute requireRole="admin"><Product /></PrivateRoute>}
+          />
+
+          <Route path="*" element={<h1>404 - Página não encontrada</h1>} />
+        </Routes>
+      </Router>
+    </AuthProvider>
   );
 };
 
