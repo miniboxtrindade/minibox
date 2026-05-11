@@ -2,9 +2,11 @@ import { useState } from 'react';
 import './signup.css';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
+import { useModal } from '../lib/modal';
 
 export default function SignUp() {
   const navigate = useNavigate();
+  const { notify } = useModal();
 
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -15,7 +17,7 @@ export default function SignUp() {
     e.preventDefault();
 
     if (!name || !email || !password) {
-      alert('Preencha todos os campos');
+      notify({ variant: 'warning', message: 'Preencha todos os campos.' });
       return;
     }
 
@@ -32,12 +34,15 @@ export default function SignUp() {
     setLoading(false);
 
     if (error) {
-      alert(error.message);
+      notify({ variant: 'error', message: error.message });
       return;
     }
 
-    alert('Cadastro realizado. Verifique seu email se a confirmação estiver ativada.');
-    navigate('/login');
+    notify({
+      variant: 'success',
+      message: 'Cadastro realizado. Verifique seu email se a confirmação estiver ativada.',
+      onConfirm: () => navigate('/login'),
+    });
   };
 
   return (

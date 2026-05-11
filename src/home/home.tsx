@@ -3,8 +3,10 @@ import './home.css';
 import * as XLSX from 'xlsx';
 import Navbar from '../components/navbar';
 import { supabase, type Client, type Transaction } from '../lib/supabase';
+import { useModal } from '../lib/modal';
 
 const Home = () => {
+  const { notify } = useModal();
 
   const [codigoBusca, setCodigoBusca] = useState('');
   const [cliente, setCliente] = useState<Client | null>(null);
@@ -32,7 +34,7 @@ const Home = () => {
 
   const buscarCliente = async () => {
     if (!codigoBusca) {
-      alert('Digite o código do crachá');
+      notify({ variant: 'warning', message: 'Digite o código do crachá.' });
       return;
     }
 
@@ -43,11 +45,11 @@ const Home = () => {
       .maybeSingle();
 
     if (error) {
-      alert('Erro ao buscar cliente');
+      notify({ variant: 'error', message: 'Erro ao buscar cliente.' });
       return;
     }
     if (!data) {
-      alert('Cliente não encontrado');
+      notify({ variant: 'warning', message: 'Cliente não encontrado.' });
       setCliente(null);
       setHistorico([]);
       return;
@@ -83,7 +85,7 @@ const Home = () => {
   const recarregar = async () => {
     if (!cliente) return;
     if (!valor || Number(valor) <= 0) {
-      alert('Digite um valor válido');
+      notify({ variant: 'warning', message: 'Digite um valor válido.' });
       return;
     }
 
@@ -93,7 +95,7 @@ const Home = () => {
     });
 
     if (error) {
-      alert(error.message);
+      notify({ variant: 'error', message: error.message });
       return;
     }
     setValor('');
@@ -102,7 +104,7 @@ const Home = () => {
   const debitar = async () => {
     if (!cliente) return;
     if (!valor || Number(valor) <= 0) {
-      alert('Digite um valor válido');
+      notify({ variant: 'warning', message: 'Digite um valor válido.' });
       return;
     }
 
@@ -112,7 +114,7 @@ const Home = () => {
     });
 
     if (error) {
-      alert(error.message);
+      notify({ variant: 'error', message: error.message });
       return;
     }
     setValor('');
@@ -120,7 +122,7 @@ const Home = () => {
 
   const cadastrarCliente = async () => {
     if (!novoCodigo || !novoNome) {
-      alert('Preencha os campos');
+      notify({ variant: 'warning', message: 'Preencha os campos.' });
       return;
     }
 
@@ -129,18 +131,18 @@ const Home = () => {
       .insert({ codigo: Number(novoCodigo), nome: novoNome });
 
     if (error) {
-      alert(error.message);
+      notify({ variant: 'error', message: error.message });
       return;
     }
 
-    alert('Cliente cadastrado com sucesso!');
+    notify({ variant: 'success', message: 'Cliente cadastrado com sucesso!' });
     setNovoCodigo('');
     setNovoNome('');
   };
 
   const exportarExcel = () => {
     if (!historico.length) {
-      alert('Sem histórico para exportar');
+      notify({ variant: 'info', message: 'Sem histórico para exportar.' });
       return;
     }
 

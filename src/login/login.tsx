@@ -2,9 +2,11 @@ import { useState } from 'react';
 import './login.css';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
+import { useModal } from '../lib/modal';
 
 export default function Login() {
     const navigate = useNavigate();
+    const { notify } = useModal();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
@@ -13,7 +15,7 @@ export default function Login() {
         e.preventDefault();
 
         if (!email || !password) {
-            alert('Preencha todos os campos');
+            notify({ variant: 'warning', message: 'Preencha todos os campos.' });
             return;
         }
 
@@ -27,7 +29,7 @@ export default function Login() {
         setLoading(false);
 
         if (error) {
-            alert(error.message);
+            notify({ variant: 'error', message: error.message });
             return;
         }
 

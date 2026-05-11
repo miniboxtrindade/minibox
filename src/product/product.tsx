@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import '../home/home.css';
 import Navbar from '../components/navbar';
 import { supabase, type Product } from '../lib/supabase';
+import { useModal } from '../lib/modal';
 
 const categorias: Product['categoria'][] = ['ALIMENTO', 'BEBIDA', 'DOCE', 'ARTIGO_RELIGIOSO'];
 
@@ -13,6 +14,7 @@ const labels: Record<Product['categoria'], string> = {
 };
 
 export default function ProductPage() {
+  const { notify, confirm } = useModal();
 
   const [produtos, setProdutos] = useState<Product[]>([]);
   const [novo, setNovo] = useState({
@@ -29,7 +31,7 @@ export default function ProductPage() {
       .order('nome');
 
     if (error) {
-      alert('Erro ao buscar produtos');
+      notify({ variant: 'error', message: 'Erro ao buscar produtos.' });
       return;
     }
     setProdutos((data ?? []) as Product[]);
@@ -54,7 +56,7 @@ export default function ProductPage() {
 
   const criarProduto = async () => {
     if (!novo.nome || !novo.preco || !novo.quantidade) {
-      alert('Preencha todos os campos');
+      notify({ variant: 'warning', message: 'Preencha todos os campos.' });
       return;
     }
 
@@ -66,11 +68,12 @@ export default function ProductPage() {
     });
 
     if (error) {
-      alert(error.message);
+      notify({ variant: 'error', message: error.message });
       return;
     }
 
     setNovo({ nome: "", preco: "", quantidade: "", categoria: "ALIMENTO" });
+    notify({ variant: 'success', message: 'Produto adicionado!' });
   };
 
   const atualizar = async (id: string, campo: string, valor: unknown) => {
@@ -79,14 +82,20 @@ export default function ProductPage() {
       .update({ [campo]: valor, updated_at: new Date().toISOString() })
       .eq('id', id);
 
-    if (error) alert(error.message);
+    if (error) notify({ variant: 'error', message: error.message });
   };
 
-  const deletar = async (id: string) => {
-    if (!confirm('Deseja excluir?')) return;
+  const deletar = async (id: string, nome: string) => {
+    const ok = await confirm({
+      variant: 'warning',
+      title: 'Excluir produto',
+      message: `Deseja realmente excluir "${nome}"?`,
+      confirmLabel: 'Excluir',
+    });
+    if (!ok) return;
 
     const { error } = await supabase.from('products').delete().eq('id', id);
-    if (error) alert(error.message);
+    if (error) notify({ variant: 'error', message: error.message });
   };
 
   return (
@@ -153,9 +162,17 @@ export default function ProductPage() {
                 <option key={c} value={c}>{labels[c]}</option>
               ))}
             </select>
-            <button className="btn-red" onClick={() => deletar(p.id)}>Excluir</button>
+            <button className="btn-red" onClick={() => deletar(p.id, p.nome)}>Excluir</button>
           </div>
         ))}
+
+        {produtos.length === 0 && (
+          <div className="empty-state">
+            <div className="empty-state__icon" aria-hidden="true">📦</div>
+            <h3>Nenhum produto cadastrado</h3>
+            <p>Use o formulário acima para adicionar o primeiro produto.</p>
+          </div>
+        )}
 
       </div>
     </div>

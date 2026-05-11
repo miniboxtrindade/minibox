@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import '../home/home.css';
 import Navbar from '../components/navbar';
 import { supabase, type Client, type Product } from '../lib/supabase';
+import { useModal } from '../lib/modal';
 
 const categorias: Record<Product['categoria'], string> = {
   ALIMENTO: "🍔 Alimentos",
@@ -18,6 +19,7 @@ interface CartItem {
 }
 
 export default function Sale() {
+  const { notify } = useModal();
 
   const [codigo, setCodigo] = useState("");
   const [cliente, setCliente] = useState<Client | null>(null);
@@ -47,7 +49,7 @@ export default function Sale() {
       .maybeSingle();
 
     if (error || !data) {
-      alert('Cliente não encontrado');
+      notify({ variant: 'warning', message: 'Cliente não encontrado.' });
       setCliente(null);
       return;
     }
@@ -113,11 +115,11 @@ export default function Sale() {
 
   const finalizar = async () => {
     if (!cliente) {
-      alert('Busque um cliente antes');
+      notify({ variant: 'warning', message: 'Busque um cliente antes.' });
       return;
     }
     if (!carrinho.length) {
-      alert('Carrinho vazio');
+      notify({ variant: 'warning', message: 'Carrinho vazio.' });
       return;
     }
 
@@ -127,11 +129,11 @@ export default function Sale() {
     });
 
     if (error) {
-      alert(error.message);
+      notify({ variant: 'error', message: error.message });
       return;
     }
 
-    alert('Venda realizada!');
+    notify({ variant: 'success', message: 'Venda realizada!' });
     setCarrinho([]);
   };
 
