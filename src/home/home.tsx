@@ -4,6 +4,7 @@ import { Search, UserPlus, Wallet, ArrowDownToLine, ArrowUpFromLine } from 'luci
 import Navbar from '../components/navbar';
 import { supabase, type Client } from '../lib/supabase';
 import { useToast } from '../components/ui/toast';
+import { useModal } from '../lib/modal';
 import {
   Button,
   Card,
@@ -20,6 +21,7 @@ const QUICK_VALUES = [5, 10, 20, 50];
 
 const Home = () => {
   const toast = useToast();
+  const { confirm } = useModal();
 
   const [codigoBusca, setCodigoBusca] = useState('');
   const [cliente, setCliente] = useState<Client | null>(null);
@@ -68,15 +70,32 @@ const Home = () => {
 
   const operar = async (tipo: 'RECARGA' | 'DEBITO') => {
     if (!cliente) return;
-    if (!valor || Number(valor) <= 0) {
+    const v = Number(valor);
+    if (!valor || v <= 0) {
       toast.warning('Digite um valor válido.');
       return;
     }
+    if (tipo === 'DEBITO' && v > Number(cliente.saldo)) {
+      toast.warning('Saldo insuficiente para esse débito.');
+      return;
+    }
+
+    const isRecarga = tipo === 'RECARGA';
+    const ok = await confirm({
+      variant: isRecarga ? 'success' : 'warning',
+      title: isRecarga ? 'Confirmar recarga' : 'Confirmar débito',
+      message: isRecarga
+        ? `Recarregar R$ ${v.toFixed(2)} no crachá de ${cliente.nome}?`
+        : `Debitar R$ ${v.toFixed(2)} do crachá de ${cliente.nome}? Saldo atual: R$ ${Number(cliente.saldo).toFixed(2)}.`,
+      confirmLabel: isRecarga ? 'Recarregar' : 'Debitar',
+    });
+    if (!ok) return;
+
     setBusy(true);
-    const rpc = tipo === 'RECARGA' ? 'recarregar_saldo' : 'debitar_saldo';
+    const rpc = isRecarga ? 'recarregar_saldo' : 'debitar_saldo';
     const { error } = await supabase.rpc(rpc, {
       p_codigo: cliente.codigo,
-      p_valor: Number(valor),
+      p_valor: v,
     });
     setBusy(false);
 
@@ -85,7 +104,7 @@ const Home = () => {
       return;
     }
     setValor('');
-    toast.success(tipo === 'RECARGA' ? 'Saldo recarregado!' : 'Saldo debitado.');
+    toast.success(isRecarga ? 'Saldo recarregado!' : 'Saldo debitado.');
   };
 
   const cadastrarCliente = async (e: React.FormEvent) => {
