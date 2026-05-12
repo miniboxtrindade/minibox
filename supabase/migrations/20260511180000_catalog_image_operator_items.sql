@@ -42,7 +42,10 @@ create index if not exists transaction_items_product_id_idx
 
 -- ---------------------------------------------------------------------
 -- 4. RPC refatorada: realizar_venda grava operador + itens
+--    drop antes do create porque o tipo de retorno mudou (não basta replace)
 -- ---------------------------------------------------------------------
+drop function if exists public.realizar_venda(integer, jsonb);
+
 create or replace function public.realizar_venda(p_codigo integer, p_itens jsonb)
 returns table (saldo_atual numeric, total numeric, transacao_id uuid)
 language plpgsql
@@ -248,3 +251,10 @@ create policy "product-images update admin"
 create policy "product-images delete admin"
   on storage.objects for delete
   using (bucket_id = 'product-images' and public.is_admin());
+
+-- ---------------------------------------------------------------------
+-- 9. Grants (drop function remove o grant anterior)
+-- ---------------------------------------------------------------------
+grant execute on function public.realizar_venda(integer, jsonb) to authenticated;
+grant execute on function public.recarregar_saldo(integer, numeric) to authenticated;
+grant execute on function public.debitar_saldo(integer, numeric, text) to authenticated;
