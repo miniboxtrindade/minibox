@@ -5,6 +5,7 @@ import { User, Mail, Lock, ArrowRight } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useToast } from '../components/ui/toast';
 import { Button, Input } from '../components/ui';
+import { friendlyError } from '../lib/errors';
 
 export default function SignUp() {
   const navigate = useNavigate();
@@ -39,7 +40,7 @@ export default function SignUp() {
     setLoading(false);
 
     if (error) {
-      toast.error(error.message);
+      toast.error(friendlyError(error));
       return;
     }
 

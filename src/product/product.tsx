@@ -11,6 +11,7 @@ import {
 } from "../lib/supabase";
 import { useModal } from "../lib/modal";
 import { useToast } from "../components/ui/toast";
+import { friendlyError } from "../lib/errors";
 import {
   Badge,
   Button,
@@ -113,7 +114,7 @@ export default function ProductPage() {
       });
       if (error) {
         if (imagem_path) await deleteProductImage(imagem_path);
-        toast.error(error.message);
+        toast.error(friendlyError(error));
         return;
       }
       setNovo(EMPTY_FORM);
@@ -173,7 +174,7 @@ export default function ProductPage() {
         .eq("id", editing.id);
 
       if (error) {
-        toast.error(error.message);
+        toast.error(friendlyError(error));
         return;
       }
       toast.success("Produto atualizado!");
@@ -196,7 +197,7 @@ export default function ProductPage() {
     if (!ok) return;
     const { error } = await supabase.from("products").delete().eq("id", p.id);
     if (error) {
-      toast.error(error.message);
+      toast.error(friendlyError(error));
       return;
     }
     await deleteProductImage(p.imagem_path);

@@ -6,6 +6,7 @@ import { supabase, type Profile, type UserRole } from "../lib/supabase";
 import { useAuth } from "../lib/auth";
 import { useToast } from "../components/ui/toast";
 import { useModal } from "../lib/modal";
+import { friendlyError } from "../lib/errors";
 import {
   Badge,
   Button,
@@ -74,16 +75,7 @@ export default function Usuarios() {
     setWorking(null);
 
     if (error) {
-      const msg = error.message;
-      if (msg.includes("NAO_PODE_REMOVER_PROPRIO_ADMIN")) {
-        toast.warning("Não é possível remover o próprio acesso admin.");
-      } else if (msg.includes("PERMISSAO_NEGADA")) {
-        toast.error("Permissão negada.");
-      } else if (msg.includes("USUARIO_NAO_ENCONTRADO")) {
-        toast.error("Usuário não encontrado.");
-      } else {
-        toast.error(msg);
-      }
+      toast.error(friendlyError(error));
       return;
     }
     toast.success(

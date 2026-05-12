@@ -5,6 +5,7 @@ import Navbar from '../components/navbar';
 import { supabase, type Client } from '../lib/supabase';
 import { useToast } from '../components/ui/toast';
 import { useModal } from '../lib/modal';
+import { friendlyError } from '../lib/errors';
 import {
   Button,
   Card,
@@ -101,7 +102,7 @@ const Cliente = () => {
     setBusy(false);
 
     if (error) {
-      toast.error(error.message);
+      toast.error(friendlyError(error));
       return;
     }
     setValor('');
@@ -121,7 +122,7 @@ const Cliente = () => {
     setBusy(false);
 
     if (error) {
-      toast.error(error.message);
+      toast.error(friendlyError(error));
       return;
     }
     toast.success('Cliente cadastrado com sucesso!');
