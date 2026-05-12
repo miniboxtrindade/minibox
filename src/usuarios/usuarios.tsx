@@ -161,35 +161,38 @@ export default function Usuarios() {
                   animate={{ opacity: 1, y: 0 }}
                 >
                   <Card>
-                    <CardBody className="flex items-center gap-3 flex-wrap">
-                      <div className="h-11 w-11 shrink-0 rounded-full bg-ejc-primary/10 text-ejc-primary flex items-center justify-center font-bold text-sm">
-                        {iniciaisDe(u.nome)}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <p className="font-semibold text-ejc-text truncate">
-                            {u.nome ?? "(sem nome)"}
-                          </p>
-                          {isSelf && (
-                            <Badge variant="info">você</Badge>
+                    <CardBody>
+                      <div className="flex items-center gap-3">
+                        <div className="h-11 w-11 shrink-0 rounded-full bg-ejc-primary/10 text-ejc-primary flex items-center justify-center font-bold text-sm">
+                          {iniciaisDe(u.nome)}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <p className="font-semibold text-ejc-text truncate">
+                              {u.nome ?? "(sem nome)"}
+                            </p>
+                            {isSelf && <Badge variant="info">você</Badge>}
+                          </div>
+                          {u.email && (
+                            <p className="text-[12px] text-ejc-muted truncate">
+                              {u.email}
+                            </p>
                           )}
                         </div>
-                        <div className="mt-1">
-                          <Badge variant={isAdmin ? "primary" : "neutral"} dot>
-                            {isAdmin ? (
-                              <span className="inline-flex items-center gap-1">
-                                <ShieldCheck size={12} /> Administrador
-                              </span>
-                            ) : (
-                              <span className="inline-flex items-center gap-1">
-                                <UserCog size={12} /> Caixa
-                              </span>
-                            )}
-                          </Badge>
-                        </div>
+                        <Badge variant={isAdmin ? "primary" : "neutral"} dot className="shrink-0">
+                          {isAdmin ? (
+                            <span className="inline-flex items-center gap-1">
+                              <ShieldCheck size={12} /> Admin
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-1">
+                              <UserCog size={12} /> Caixa
+                            </span>
+                          )}
+                        </Badge>
                       </div>
 
-                      <div className="ml-auto flex gap-2 flex-wrap justify-end">
+                      <div className="flex gap-2 flex-wrap justify-end mt-3 pt-3 border-t border-ejc-border/60">
                         <Button
                           variant="secondary"
                           size="sm"

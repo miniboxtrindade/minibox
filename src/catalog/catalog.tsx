@@ -6,8 +6,9 @@ import Navbar from "../components/navbar";
 import {
   supabase,
   type Product,
+  type Category,
 } from "../lib/supabase";
-import { useCategories, useCategoryMap } from "../lib/use-categories";
+import { useCategories } from "../lib/use-categories";
 import {
   Badge,
   Card,
@@ -41,7 +42,13 @@ export default function Catalog() {
   const [produtos, setProdutos] = useState<Product[] | null>(null);
   const [busca, setBusca] = useState("");
   const categories = useCategories();
-  const categoryMap = useCategoryMap();
+  const categoryMap = useMemo(() => {
+    if (!categories) return null;
+    return categories.reduce<Record<string, Category>>((acc, c) => {
+      acc[c.key] = c;
+      return acc;
+    }, {});
+  }, [categories]);
 
   const filtroAtual = searchParams.get("categoria") ?? "ALL";
   const setFiltro = (f: string) => {

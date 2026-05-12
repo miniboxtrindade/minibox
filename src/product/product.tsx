@@ -416,53 +416,53 @@ export default function ProductPage() {
                     initial={{ opacity: 0, y: 6 }}
                     animate={{ opacity: 1, y: 0 }}
                   >
-                    <Card className="flex items-center gap-3 p-3 hover:shadow-md transition-shadow">
-                      <div className="h-16 w-16 shrink-0 rounded-xl bg-ejc-bg overflow-hidden flex items-center justify-center">
-                        {p.imagem_url ? (
-                          <img
-                            src={p.imagem_url}
-                            alt={p.nome}
-                            loading="lazy"
-                            className="w-full h-full object-cover"
-                          />
-                        ) : (
-                          <ImageOff size={20} className="text-ejc-muted" />
-                        )}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="font-semibold text-ejc-text leading-tight truncate">
-                          {p.nome}
-                        </p>
-                        <div className="flex items-center gap-2 flex-wrap mt-1">
-                          <Badge variant="primary">
-                            {categories?.find((c) => c.key === p.categoria)?.emoji ?? "📦"}{" "}
-                            {categories?.find((c) => c.key === p.categoria)?.label ?? p.categoria}
-                          </Badge>
-                          <Badge variant={stock.variant} dot>{stock.label}</Badge>
+                    <Card className="p-3 hover:shadow-md transition-shadow">
+                      <div className="flex items-center gap-3">
+                        <div className="h-14 w-14 sm:h-16 sm:w-16 shrink-0 rounded-xl bg-ejc-bg overflow-hidden flex items-center justify-center">
+                          {p.imagem_url ? (
+                            <img
+                              src={p.imagem_url}
+                              alt={p.nome}
+                              loading="lazy"
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <ImageOff size={20} className="text-ejc-muted" />
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-semibold text-ejc-text leading-tight truncate">
+                            {p.nome}
+                          </p>
+                          <p className="font-display text-base sm:text-lg font-extrabold text-ejc-primary tabular-nums mt-0.5">
+                            R$ {Number(p.preco).toFixed(2)}
+                          </p>
+                        </div>
+                        <div className="flex items-center gap-1 shrink-0">
+                          <button
+                            type="button"
+                            aria-label="Editar"
+                            onClick={() => abrirEdicao(p)}
+                            className="h-9 w-9 rounded-lg bg-ejc-bg text-ejc-primary flex items-center justify-center hover:bg-ejc-primary/10"
+                          >
+                            <Pencil size={15} />
+                          </button>
+                          <button
+                            type="button"
+                            aria-label="Excluir"
+                            onClick={() => deletar(p)}
+                            className="h-9 w-9 rounded-lg bg-ejc-red/10 text-ejc-red flex items-center justify-center hover:bg-ejc-red/15"
+                          >
+                            <Trash2 size={15} />
+                          </button>
                         </div>
                       </div>
-                      <div className="text-right shrink-0">
-                        <p className="font-display text-lg font-extrabold text-ejc-primary tabular-nums">
-                          R$ {Number(p.preco).toFixed(2)}
-                        </p>
-                      </div>
-                      <div className="flex items-center gap-1 shrink-0">
-                        <button
-                          type="button"
-                          aria-label="Editar"
-                          onClick={() => abrirEdicao(p)}
-                          className="h-9 w-9 rounded-lg bg-ejc-bg text-ejc-primary flex items-center justify-center hover:bg-ejc-primary/10"
-                        >
-                          <Pencil size={15} />
-                        </button>
-                        <button
-                          type="button"
-                          aria-label="Excluir"
-                          onClick={() => deletar(p)}
-                          className="h-9 w-9 rounded-lg bg-ejc-red/10 text-ejc-red flex items-center justify-center hover:bg-ejc-red/15"
-                        >
-                          <Trash2 size={15} />
-                        </button>
+                      <div className="flex items-center gap-2 flex-wrap mt-2 pl-[68px] sm:pl-[76px]">
+                        <Badge variant="primary">
+                          {categories?.find((c) => c.key === p.categoria)?.emoji ?? "📦"}{" "}
+                          {categories?.find((c) => c.key === p.categoria)?.label ?? p.categoria}
+                        </Badge>
+                        <Badge variant={stock.variant} dot>{stock.label}</Badge>
                       </div>
                     </Card>
                   </motion.li>
