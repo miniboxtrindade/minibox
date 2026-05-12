@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 import './home.css';
-import * as XLSX from 'xlsx';
 import Navbar from '../components/navbar';
-import { supabase, type Client, type Transaction } from '../lib/supabase';
+import { supabase, type Client } from '../lib/supabase';
 import { useModal } from '../lib/modal';
+import { TransactionHistory } from './transaction-history';
 
 const Home = () => {
   const { notify } = useModal();
@@ -13,24 +13,8 @@ const Home = () => {
   const [valor, setValor] = useState('');
   const [novoCodigo, setNovoCodigo] = useState('');
   const [novoNome, setNovoNome] = useState('');
-  const [historico, setHistorico] = useState<Transaction[]>([]);
 
   const definirValorRapido = (v: number) => setValor(String(v));
-
-  const buscarHistorico = async (clienteId: string) => {
-    const { data, error } = await supabase
-      .from('transactions')
-      .select('*')
-      .eq('cliente_id', clienteId)
-      .order('created_at', { ascending: false });
-
-    if (error) {
-      console.log('Erro ao buscar histórico', error.message);
-      setHistorico([]);
-      return;
-    }
-    setHistorico((data ?? []) as Transaction[]);
-  };
 
   const buscarCliente = async () => {
     if (!codigoBusca) {
@@ -51,12 +35,10 @@ const Home = () => {
     if (!data) {
       notify({ variant: 'warning', message: 'Cliente não encontrado.' });
       setCliente(null);
-      setHistorico([]);
       return;
     }
 
     setCliente(data as Client);
-    await buscarHistorico((data as Client).id);
   };
 
   // Realtime: atualiza saldo do cliente em tela ao detectar mudança
@@ -69,11 +51,6 @@ const Home = () => {
         'postgres_changes',
         { event: 'UPDATE', schema: 'public', table: 'clients', filter: `id=eq.${cliente.id}` },
         (payload) => setCliente(payload.new as Client),
-      )
-      .on(
-        'postgres_changes',
-        { event: 'INSERT', schema: 'public', table: 'transactions', filter: `cliente_id=eq.${cliente.id}` },
-        () => buscarHistorico(cliente.id),
       )
       .subscribe();
 
@@ -140,24 +117,6 @@ const Home = () => {
     setNovoNome('');
   };
 
-  const exportarExcel = () => {
-    if (!historico.length) {
-      notify({ variant: 'info', message: 'Sem histórico para exportar.' });
-      return;
-    }
-
-    const dadosFormatados = historico.map((item) => ({
-      Tipo: item.tipo,
-      Valor: item.valor,
-      Data: new Date(item.created_at).toLocaleString(),
-    }));
-
-    const ws = XLSX.utils.json_to_sheet(dadosFormatados);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, 'Relatorio');
-    XLSX.writeFile(wb, `relatorio_cliente_${codigoBusca}.xlsx`);
-  };
-
   return (
     <div className="home-page">
 
@@ -208,33 +167,12 @@ const Home = () => {
               </div>
             </div>
 
-            {historico.length > 0 && (
-              <div className="historico">
-                <div className="historico-header">
-                  <h3>Histórico</h3>
-                  <button onClick={exportarExcel}>Exportar Excel</button>
-                </div>
-
-                <table>
-                  <thead>
-                    <tr>
-                      <th>Tipo</th>
-                      <th>Valor</th>
-                      <th>Data</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {historico.map((item) => (
-                      <tr key={item.id}>
-                        <td>{item.tipo}</td>
-                        <td>R$ {Number(item.valor).toFixed(2)}</td>
-                        <td>{new Date(item.created_at).toLocaleString()}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
+            <div style={{ marginBottom: 24 }}>
+              <TransactionHistory
+                clienteId={cliente.id}
+                clienteCodigo={cliente.codigo}
+              />
+            </div>
           </>
         )}
 
