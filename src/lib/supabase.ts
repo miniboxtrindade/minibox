@@ -16,6 +16,29 @@ export const supabase = createClient(url, anonKey, {
 
 export type UserRole = 'caixa' | 'admin';
 
+export type ProductCategory = 'ALIMENTO' | 'BEBIDA' | 'DOCE' | 'ARTIGO_RELIGIOSO';
+
+export const PRODUCT_CATEGORIES: ProductCategory[] = [
+  'ALIMENTO',
+  'BEBIDA',
+  'DOCE',
+  'ARTIGO_RELIGIOSO',
+];
+
+export const CATEGORY_LABELS: Record<ProductCategory, string> = {
+  ALIMENTO: 'Alimentos',
+  BEBIDA: 'Bebidas',
+  DOCE: 'Doces',
+  ARTIGO_RELIGIOSO: 'Artigos Religiosos',
+};
+
+export const CATEGORY_EMOJI: Record<ProductCategory, string> = {
+  ALIMENTO: '🍔',
+  BEBIDA: '🥤',
+  DOCE: '🍫',
+  ARTIGO_RELIGIOSO: '🙇🏻‍♂️',
+};
+
 export interface Profile {
   id: string;
   nome: string | null;
@@ -36,7 +59,9 @@ export interface Product {
   nome: string;
   preco: number;
   quantidade: number;
-  categoria: 'ALIMENTO' | 'BEBIDA' | 'DOCE' | 'ARTIGO_RELIGIOSO';
+  categoria: ProductCategory;
+  imagem_url: string | null;
+  imagem_path: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -47,5 +72,17 @@ export interface Transaction {
   tipo: 'RECARGA' | 'DEBITO';
   valor: number;
   descricao: string | null;
+  operador_id: string | null;
+  created_at: string;
+}
+
+export interface TransactionItem {
+  id: string;
+  transaction_id: string;
+  product_id: string | null;
+  produto_nome: string;
+  preco_unitario: number;
+  quantidade: number;
+  subtotal: number;
   created_at: string;
 }
