@@ -10,6 +10,7 @@ import Home from './home/home';
 import Dashboard from './dashboard/dashboard';
 import Sale from './sale/sale';
 import Product from './product/product';
+import Catalog from './catalog/catalog';
 
 const App = () => {
   return (
@@ -24,6 +25,7 @@ const App = () => {
               <Route path="/signup" element={<SignUp />} />
 
               <Route path="/home" element={<PrivateRoute><Home /></PrivateRoute>} />
+              <Route path="/catalog" element={<PrivateRoute><Catalog /></PrivateRoute>} />
               <Route path="/sale" element={<PrivateRoute><Sale /></PrivateRoute>} />
               <Route
                 path="/dashboard"

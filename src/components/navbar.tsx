@@ -39,6 +39,7 @@ export default function Navbar() {
 
         <div className="nav-center">
           <button onClick={() => go("/home")}>Home</button>
+          <button onClick={() => go("/catalog")}>Catálogo</button>
           {isAdmin && <button onClick={() => go("/dashboard")}>Dashboard</button>}
           <button onClick={() => go("/sale")}>Venda</button>
           {isAdmin && <button onClick={() => go("/product")}>Produtos</button>}
@@ -76,6 +77,7 @@ export default function Navbar() {
 
       <div className={`mobile-menu ${menuOpen ? "open" : ""}`}>
         <button onClick={() => go("/home")}>Home</button>
+        <button onClick={() => go("/catalog")}>Catálogo</button>
         {isAdmin && <button onClick={() => go("/dashboard")}>Dashboard</button>}
         <button onClick={() => go("/sale")}>Venda</button>
         {isAdmin && <button onClick={() => go("/product")}>Produtos</button>}
