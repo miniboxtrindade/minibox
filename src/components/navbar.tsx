@@ -27,7 +27,7 @@ const ITEMS: NavItem[] = [
   { path: "/cliente", label: "Cliente", icon: UserSearch },
   { path: "/catalog", label: "Catálogo", icon: PackageSearch },
   { path: "/dashboard", label: "Dashboard", icon: LayoutDashboard, admin: true },
-  { path: "/product", label: "Produtos", icon: Boxes, admin: true },
+  { path: "/product", label: "Produtos", icon: Boxes },
   { path: "/usuarios", label: "Usuários", icon: UsersRound, admin: true },
 ];
 

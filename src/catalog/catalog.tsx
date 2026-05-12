@@ -6,11 +6,8 @@ import Navbar from "../components/navbar";
 import {
   supabase,
   type Product,
-  type ProductCategory,
-  PRODUCT_CATEGORIES,
-  CATEGORY_LABELS,
-  CATEGORY_EMOJI,
 } from "../lib/supabase";
+import { useCategories, useCategoryMap } from "../lib/use-categories";
 import {
   Badge,
   Card,
@@ -19,26 +16,6 @@ import {
   Skeleton,
 } from "../components/ui";
 import { cn } from "../lib/cn";
-
-type Filter = "ALL" | ProductCategory;
-
-const FILTERS: Filter[] = ["ALL", ...PRODUCT_CATEGORIES];
-
-const FILTER_LABEL: Record<Filter, string> = {
-  ALL: "Todos",
-  ALIMENTO: CATEGORY_LABELS.ALIMENTO,
-  BEBIDA: CATEGORY_LABELS.BEBIDA,
-  DOCE: CATEGORY_LABELS.DOCE,
-  ARTIGO_RELIGIOSO: CATEGORY_LABELS.ARTIGO_RELIGIOSO,
-};
-
-const FILTER_EMOJI: Record<Filter, string> = {
-  ALL: "✨",
-  ALIMENTO: CATEGORY_EMOJI.ALIMENTO,
-  BEBIDA: CATEGORY_EMOJI.BEBIDA,
-  DOCE: CATEGORY_EMOJI.DOCE,
-  ARTIGO_RELIGIOSO: CATEGORY_EMOJI.ARTIGO_RELIGIOSO,
-};
 
 function stockVariant(qtd: number): "success" | "warning" | "danger" {
   if (qtd <= 0) return "danger";
@@ -63,9 +40,11 @@ export default function Catalog() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [produtos, setProdutos] = useState<Product[] | null>(null);
   const [busca, setBusca] = useState("");
+  const categories = useCategories();
+  const categoryMap = useCategoryMap();
 
-  const filtroAtual = (searchParams.get("categoria") ?? "ALL") as Filter;
-  const setFiltro = (f: Filter) => {
+  const filtroAtual = searchParams.get("categoria") ?? "ALL";
+  const setFiltro = (f: string) => {
     const params = new URLSearchParams(searchParams);
     if (f === "ALL") params.delete("categoria");
     else params.set("categoria", f);
@@ -102,19 +81,23 @@ export default function Catalog() {
   }, []);
 
   const contagemPorCategoria = useMemo(() => {
-    const map: Record<Filter, number> = {
-      ALL: 0,
-      ALIMENTO: 0,
-      BEBIDA: 0,
-      DOCE: 0,
-      ARTIGO_RELIGIOSO: 0,
-    };
+    const map: Record<string, number> = { ALL: 0 };
     (produtos ?? []).forEach((p) => {
       map.ALL += 1;
-      map[p.categoria] += 1;
+      map[p.categoria] = (map[p.categoria] ?? 0) + 1;
     });
     return map;
   }, [produtos]);
+
+  const filtros = useMemo(() => {
+    const list: { key: string; label: string; emoji: string }[] = [
+      { key: "ALL", label: "Todos", emoji: "✨" },
+    ];
+    (categories ?? []).forEach((c) =>
+      list.push({ key: c.key, label: c.label, emoji: c.emoji }),
+    );
+    return list;
+  }, [categories]);
 
   const produtosVisiveis = useMemo(() => {
     if (!produtos) return [];
@@ -154,12 +137,12 @@ export default function Catalog() {
           className="flex gap-2 overflow-x-auto pb-3 -mx-4 px-4 md:mx-0 md:px-0 scrollbar-thin"
           aria-label="Filtrar por categoria"
         >
-          {FILTERS.map((f) => {
-            const active = filtroAtual === f;
+          {filtros.map((f) => {
+            const active = filtroAtual === f.key;
             return (
               <button
-                key={f}
-                onClick={() => setFiltro(f)}
+                key={f.key}
+                onClick={() => setFiltro(f.key)}
                 aria-pressed={active}
                 className={cn(
                   "shrink-0 inline-flex items-center gap-1.5 h-9 px-3.5 rounded-full text-sm font-medium",
@@ -169,8 +152,8 @@ export default function Catalog() {
                     : "bg-white text-ejc-text border-ejc-border hover:border-ejc-primary/40 hover:text-ejc-primary",
                 )}
               >
-                <span aria-hidden>{FILTER_EMOJI[f]}</span>
-                {FILTER_LABEL[f]}
+                <span aria-hidden>{f.emoji}</span>
+                {f.label}
                 <span
                   className={cn(
                     "ml-1 inline-flex items-center justify-center min-w-5 h-5 px-1.5 rounded-full text-[11px] font-semibold",
@@ -179,7 +162,7 @@ export default function Catalog() {
                       : "bg-ejc-bg text-ejc-muted",
                   )}
                 >
-                  {contagemPorCategoria[f]}
+                  {contagemPorCategoria[f.key] ?? 0}
                 </span>
               </button>
             );
@@ -241,7 +224,7 @@ export default function Catalog() {
                           )}
                           <div className="absolute top-2 left-2">
                             <Badge variant="primary">
-                              {CATEGORY_EMOJI[p.categoria]} {CATEGORY_LABELS[p.categoria]}
+                              {categoryMap?.[p.categoria]?.emoji ?? "📦"} {categoryMap?.[p.categoria]?.label ?? p.categoria}
                             </Badge>
                           </div>
                         </div>

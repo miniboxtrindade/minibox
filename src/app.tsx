@@ -59,11 +59,7 @@ function AnimatedRoutes() {
         />
         <Route
           path="/product"
-          element={
-            <PrivateRoute requireRole="admin">
-              <PageTransition><Product /></PageTransition>
-            </PrivateRoute>
-          }
+          element={<PrivateRoute><PageTransition><Product /></PageTransition></PrivateRoute>}
         />
         <Route
           path="/usuarios"

@@ -14,11 +14,8 @@ import {
   supabase,
   type Client,
   type Product,
-  type ProductCategory,
-  PRODUCT_CATEGORIES,
-  CATEGORY_LABELS,
-  CATEGORY_EMOJI,
 } from "../lib/supabase";
+import { useCategories } from "../lib/use-categories";
 import { useToast } from "../components/ui/toast";
 import { useModal } from "../lib/modal";
 import { friendlyError } from "../lib/errors";
@@ -41,35 +38,29 @@ interface CartItem {
   quantidade: number;
 }
 
-type Filter = "ALL" | ProductCategory;
-const FILTERS: Filter[] = ["ALL", ...PRODUCT_CATEGORIES];
-const FILTER_LABEL: Record<Filter, string> = {
-  ALL: "Todos",
-  ALIMENTO: CATEGORY_LABELS.ALIMENTO,
-  BEBIDA: CATEGORY_LABELS.BEBIDA,
-  DOCE: CATEGORY_LABELS.DOCE,
-  ARTIGO_RELIGIOSO: CATEGORY_LABELS.ARTIGO_RELIGIOSO,
-};
-const FILTER_EMOJI: Record<Filter, string> = {
-  ALL: "✨",
-  ALIMENTO: CATEGORY_EMOJI.ALIMENTO,
-  BEBIDA: CATEGORY_EMOJI.BEBIDA,
-  DOCE: CATEGORY_EMOJI.DOCE,
-  ARTIGO_RELIGIOSO: CATEGORY_EMOJI.ARTIGO_RELIGIOSO,
-};
-
 export default function Home() {
   const toast = useToast();
   const { confirm } = useModal();
+  const categories = useCategories();
 
   const [codigo, setCodigo] = useState("");
   const [cliente, setCliente] = useState<Client | null>(null);
   const [produtos, setProdutos] = useState<Product[] | null>(null);
   const [carrinho, setCarrinho] = useState<CartItem[]>([]);
-  const [filtro, setFiltro] = useState<Filter>("ALL");
+  const [filtro, setFiltro] = useState<string>("ALL");
   const [busca, setBusca] = useState("");
   const [cartOpen, setCartOpen] = useState(false);
   const [finalizando, setFinalizando] = useState(false);
+
+  const filtros = useMemo(() => {
+    const list: { key: string; label: string; emoji: string }[] = [
+      { key: "ALL", label: "Todos", emoji: "✨" },
+    ];
+    (categories ?? []).forEach((c) =>
+      list.push({ key: c.key, label: c.label, emoji: c.emoji }),
+    );
+    return list;
+  }, [categories]);
 
   const buscarProdutos = async () => {
     const { data, error } = await supabase
@@ -82,7 +73,10 @@ export default function Home() {
 
   const buscarCliente = async (e?: React.FormEvent) => {
     e?.preventDefault();
-    if (!codigo) return;
+    if (!codigo) {
+      setCliente(null);
+      return;
+    }
     const { data, error } = await supabase
       .from("clients")
       .select("*")
@@ -94,6 +88,12 @@ export default function Home() {
       return;
     }
     setCliente(data as Client);
+  };
+
+  const handleCodigoChange = (next: string) => {
+    setCodigo(next);
+    // Qualquer alteração na busca desfaz a seleção do cliente
+    if (cliente) setCliente(null);
   };
 
   useEffect(() => {
@@ -215,6 +215,8 @@ export default function Home() {
     toast.success("Venda realizada!");
     setCarrinho([]);
     setCartOpen(false);
+    setCliente(null);
+    setCodigo("");
   };
 
   const iniciais = cliente?.nome
@@ -243,7 +245,7 @@ export default function Home() {
             <Input
               placeholder="Código do cliente"
               value={codigo}
-              onChange={(e) => setCodigo(e.target.value)}
+              onChange={(e) => handleCodigoChange(e.target.value)}
               leftIcon={<Search size={16} />}
               type="number"
               inputMode="numeric"
@@ -300,13 +302,13 @@ export default function Home() {
           className="flex gap-2 overflow-x-auto pb-3 mb-2 -mx-4 px-4 md:mx-0 md:px-0"
           aria-label="Filtrar por categoria"
         >
-          {FILTERS.map((f) => {
-            const active = filtro === f;
+          {filtros.map((f) => {
+            const active = filtro === f.key;
             return (
               <button
-                key={f}
+                key={f.key}
                 type="button"
-                onClick={() => setFiltro(f)}
+                onClick={() => setFiltro(f.key)}
                 aria-pressed={active}
                 className={cn(
                   "shrink-0 inline-flex items-center gap-1.5 h-9 px-3.5 rounded-full text-sm font-medium border transition-all",
@@ -315,8 +317,8 @@ export default function Home() {
                     : "bg-white text-ejc-text border-ejc-border hover:border-ejc-primary/40 hover:text-ejc-primary",
                 )}
               >
-                <span aria-hidden>{FILTER_EMOJI[f]}</span>
-                {FILTER_LABEL[f]}
+                <span aria-hidden>{f.emoji}</span>
+                {f.label}
               </button>
             );
           })}

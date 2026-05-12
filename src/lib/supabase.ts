@@ -16,28 +16,12 @@ export const supabase = createClient(url, anonKey, {
 
 export type UserRole = 'caixa' | 'admin';
 
-export type ProductCategory = 'ALIMENTO' | 'BEBIDA' | 'DOCE' | 'ARTIGO_RELIGIOSO';
-
-export const PRODUCT_CATEGORIES: ProductCategory[] = [
-  'ALIMENTO',
-  'BEBIDA',
-  'DOCE',
-  'ARTIGO_RELIGIOSO',
-];
-
-export const CATEGORY_LABELS: Record<ProductCategory, string> = {
-  ALIMENTO: 'Alimentos',
-  BEBIDA: 'Bebidas',
-  DOCE: 'Doces',
-  ARTIGO_RELIGIOSO: 'Artigos Religiosos',
-};
-
-export const CATEGORY_EMOJI: Record<ProductCategory, string> = {
-  ALIMENTO: '🍔',
-  BEBIDA: '🥤',
-  DOCE: '🍫',
-  ARTIGO_RELIGIOSO: '🙇🏻‍♂️',
-};
+export interface Category {
+  key: string;
+  label: string;
+  emoji: string;
+  created_at: string;
+}
 
 export interface Profile {
   id: string;
@@ -59,7 +43,7 @@ export interface Product {
   nome: string;
   preco: number;
   quantidade: number;
-  categoria: ProductCategory;
+  categoria: string; // FK → categories.key
   imagem_url: string | null;
   imagem_path: string | null;
   created_at: string;

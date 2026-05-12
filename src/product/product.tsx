@@ -1,14 +1,12 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { PackagePlus, Pencil, Trash2, ImageOff, Save } from "lucide-react";
+import { PackagePlus, Pencil, Trash2, ImageOff, Save, Plus } from "lucide-react";
 import Navbar from "../components/navbar";
 import {
   supabase,
   type Product,
-  PRODUCT_CATEGORIES,
-  CATEGORY_LABELS,
-  CATEGORY_EMOJI,
 } from "../lib/supabase";
+import { useCategories } from "../lib/use-categories";
 import { useModal } from "../lib/modal";
 import { useToast } from "../components/ui/toast";
 import { friendlyError } from "../lib/errors";
@@ -33,7 +31,7 @@ interface FormState {
   nome: string;
   preco: string;
   quantidade: string;
-  categoria: Product["categoria"];
+  categoria: string;
 }
 
 const EMPTY_FORM: FormState = {
@@ -42,6 +40,15 @@ const EMPTY_FORM: FormState = {
   quantidade: "",
   categoria: "ALIMENTO",
 };
+
+function slugify(s: string): string {
+  return s
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "")
+    .toUpperCase()
+    .replace(/[^A-Z0-9]+/g, "_")
+    .replace(/^_+|_+$/g, "");
+}
 
 function stockBadge(qtd: number) {
   if (qtd <= 0) return { variant: "danger" as const, label: "Esgotado" };
@@ -52,6 +59,7 @@ function stockBadge(qtd: number) {
 export default function ProductPage() {
   const { confirm } = useModal();
   const toast = useToast();
+  const categories = useCategories();
 
   const [produtos, setProdutos] = useState<Product[] | null>(null);
   const [novo, setNovo] = useState<FormState>(EMPTY_FORM);
@@ -62,6 +70,11 @@ export default function ProductPage() {
   const [editForm, setEditForm] = useState<FormState>(EMPTY_FORM);
   const [editImage, setEditImage] = useState<File | null>(null);
   const [savingEdit, setSavingEdit] = useState(false);
+
+  const [showNewCategory, setShowNewCategory] = useState(false);
+  const [newCategoryLabel, setNewCategoryLabel] = useState("");
+  const [newCategoryEmoji, setNewCategoryEmoji] = useState("📦");
+  const [creatingCategory, setCreatingCategory] = useState(false);
 
   const buscar = async () => {
     const { data, error } = await supabase
@@ -87,6 +100,43 @@ export default function ProductPage() {
       .subscribe();
     return () => { supabase.removeChannel(channel); };
   }, []);
+
+  // Ajusta a categoria default conforme a primeira disponível, caso ALIMENTO seja excluída
+  useEffect(() => {
+    if (!categories || categories.length === 0) return;
+    if (!categories.some((c) => c.key === novo.categoria)) {
+      setNovo((s) => ({ ...s, categoria: categories[0].key }));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [categories]);
+
+  const criarCategoria = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const label = newCategoryLabel.trim();
+    if (!label) {
+      toast.warning("Informe o nome da categoria.");
+      return;
+    }
+    const key = slugify(label);
+    if (!key) {
+      toast.warning("Nome de categoria inválido.");
+      return;
+    }
+    setCreatingCategory(true);
+    const { error } = await supabase
+      .from("categories")
+      .insert({ key, label, emoji: newCategoryEmoji.trim() || "📦" });
+    setCreatingCategory(false);
+    if (error) {
+      toast.error(friendlyError(error));
+      return;
+    }
+    setNovo((s) => ({ ...s, categoria: key }));
+    setNewCategoryLabel("");
+    setNewCategoryEmoji("📦");
+    setShowNewCategory(false);
+    toast.success(`Categoria "${label}" criada!`);
+  };
 
   const criarProduto = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -262,13 +312,13 @@ export default function ProductPage() {
                     Categoria
                   </label>
                   <div className="grid grid-cols-2 gap-2">
-                    {PRODUCT_CATEGORIES.map((c) => {
-                      const active = novo.categoria === c;
+                    {(categories ?? []).map((c) => {
+                      const active = novo.categoria === c.key;
                       return (
                         <button
-                          key={c}
+                          key={c.key}
                           type="button"
-                          onClick={() => setNovo({ ...novo, categoria: c })}
+                          onClick={() => setNovo({ ...novo, categoria: c.key })}
                           className={cn(
                             "h-11 px-3 rounded-lg border text-sm font-medium inline-flex items-center gap-2 transition-colors",
                             active
@@ -276,12 +326,51 @@ export default function ProductPage() {
                               : "bg-white text-ejc-text border-ejc-border hover:border-ejc-primary/40",
                           )}
                         >
-                          <span>{CATEGORY_EMOJI[c]}</span>
-                          {CATEGORY_LABELS[c]}
+                          <span>{c.emoji}</span>
+                          {c.label}
                         </button>
                       );
                     })}
+                    <button
+                      type="button"
+                      onClick={() => setShowNewCategory((v) => !v)}
+                      className={cn(
+                        "h-11 px-3 rounded-lg border-2 border-dashed text-sm font-medium inline-flex items-center gap-2 transition-colors col-span-2",
+                        showNewCategory
+                          ? "bg-ejc-bg border-ejc-primary text-ejc-primary"
+                          : "bg-white border-ejc-border text-ejc-muted hover:border-ejc-primary/50 hover:text-ejc-primary",
+                      )}
+                    >
+                      <Plus size={14} /> {showNewCategory ? "Cancelar nova categoria" : "Criar nova categoria"}
+                    </button>
                   </div>
+
+                  {showNewCategory && (
+                    <div className="mt-2 grid grid-cols-[80px_1fr_auto] gap-2 items-end p-3 bg-ejc-bg rounded-lg border border-ejc-border">
+                      <Input
+                        label="Emoji"
+                        value={newCategoryEmoji}
+                        onChange={(e) => setNewCategoryEmoji(e.target.value)}
+                        maxLength={4}
+                        placeholder="📦"
+                      />
+                      <Input
+                        label="Nome da categoria"
+                        value={newCategoryLabel}
+                        onChange={(e) => setNewCategoryLabel(e.target.value)}
+                        placeholder="Ex: Lanches"
+                      />
+                      <Button
+                        type="button"
+                        size="md"
+                        variant="success"
+                        onClick={criarCategoria}
+                        loading={creatingCategory}
+                      >
+                        Criar
+                      </Button>
+                    </div>
+                  )}
                 </div>
                 <Button
                   type="submit"
@@ -345,7 +434,8 @@ export default function ProductPage() {
                         </p>
                         <div className="flex items-center gap-2 flex-wrap mt-1">
                           <Badge variant="primary">
-                            {CATEGORY_EMOJI[p.categoria]} {CATEGORY_LABELS[p.categoria]}
+                            {categories?.find((c) => c.key === p.categoria)?.emoji ?? "📦"}{" "}
+                            {categories?.find((c) => c.key === p.categoria)?.label ?? p.categoria}
                           </Badge>
                           <Badge variant={stock.variant} dot>{stock.label}</Badge>
                         </div>
@@ -420,13 +510,13 @@ export default function ProductPage() {
             <div className="flex flex-col gap-1.5">
               <label className="text-[13px] font-medium text-ejc-text">Categoria</label>
               <div className="grid grid-cols-2 gap-2">
-                {PRODUCT_CATEGORIES.map((c) => {
-                  const active = editForm.categoria === c;
+                {(categories ?? []).map((c) => {
+                  const active = editForm.categoria === c.key;
                   return (
                     <button
-                      key={c}
+                      key={c.key}
                       type="button"
-                      onClick={() => setEditForm({ ...editForm, categoria: c })}
+                      onClick={() => setEditForm({ ...editForm, categoria: c.key })}
                       className={cn(
                         "h-11 rounded-lg border text-sm font-medium inline-flex items-center justify-center gap-2 transition-colors",
                         active
@@ -434,8 +524,8 @@ export default function ProductPage() {
                           : "bg-white text-ejc-text border-ejc-border hover:border-ejc-primary/40",
                       )}
                     >
-                      <span>{CATEGORY_EMOJI[c]}</span>
-                      {CATEGORY_LABELS[c]}
+                      <span>{c.emoji}</span>
+                      {c.label}
                     </button>
                   );
                 })}
