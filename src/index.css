@@ -82,6 +82,15 @@
     color: var(--ejc-text);
     background-color: var(--ejc-bg);
   }
+
+  /* Evita zoom-on-focus do iOS Safari: fonte mínima 16px em campos no mobile */
+  @media (max-width: 767px) {
+    input,
+    select,
+    textarea {
+      font-size: 16px;
+    }
+  }
 }
 
 /* =========================
