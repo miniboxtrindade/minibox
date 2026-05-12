@@ -62,28 +62,23 @@ export default function Navbar() {
 
   return (
     <>
-      <nav
-        className={cn(
-          "fixed top-0 inset-x-0 z-[1000]",
-          "bg-ejc-primary/95 backdrop-blur supports-[backdrop-filter]:bg-ejc-primary/80",
-          "border-b border-white/10",
-        )}
-      >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 lg:h-[72px] flex items-center gap-4">
+      <nav className="fixed top-0 inset-x-0 z-[1000] bg-ejc-primary text-white border-b border-white/10 shadow-lg shadow-ejc-primary/20">
+        <div className="relative max-w-7xl w-full mx-auto px-4 sm:px-6 h-16 lg:h-[72px] flex items-center gap-3">
+
           <button
             type="button"
             onClick={() => navigate("/home")}
-            className="flex items-center gap-2 shrink-0 text-white"
+            className="flex items-center gap-2.5 shrink-0 text-white"
           >
-            <span className="h-9 w-9 rounded-lg bg-white/10 backdrop-blur-md flex items-center justify-center overflow-hidden">
-              <img src="/logo-ejc.png" alt="" className="w-7 h-7 object-contain" />
+            <span className="h-9 w-9 sm:h-10 sm:w-10 rounded-lg bg-white flex items-center justify-center overflow-hidden ring-1 ring-white/30">
+              <img src="/logo-ejc1.png" alt="EJC" className="w-7 h-7 sm:w-8 sm:h-8 object-contain" />
             </span>
-            <span className="font-display font-bold text-[15px] tracking-tight hidden sm:inline">
-              Minibox EJC
+            <span className="font-display font-bold text-[15px] sm:text-[16px] tracking-tight text-white whitespace-nowrap">
+              Minibox <span className="text-ejc-yellow">EJC</span>
             </span>
           </button>
 
-          <div className="hidden lg:flex items-center gap-1 ml-4 flex-1">
+          <div className="hidden lg:flex items-center gap-1 absolute left-1/2 -translate-x-1/2">
             {items.map((item) => {
               const Icon = item.icon;
               return (
@@ -94,19 +89,19 @@ export default function Navbar() {
                     cn(
                       "relative inline-flex items-center gap-2 px-3 h-10 rounded-lg text-sm font-medium transition-colors",
                       isActive
-                        ? "text-white bg-white/10"
-                        : "text-white/70 hover:text-white hover:bg-white/5",
+                        ? "text-white bg-white/12"
+                        : "text-white/85 hover:text-white hover:bg-white/8",
                     )
                   }
                 >
                   {({ isActive }) => (
                     <>
-                      <Icon size={15} />
-                      {item.label}
+                      <Icon size={15} className="shrink-0" />
+                      <span>{item.label}</span>
                       {isActive && (
                         <motion.span
                           layoutId="nav-indicator"
-                          className="absolute bottom-1 left-3 right-3 h-0.5 rounded-full bg-ejc-yellow"
+                          className="absolute -bottom-px left-3 right-3 h-0.5 rounded-full bg-ejc-yellow"
                           transition={{ type: "spring", stiffness: 380, damping: 30 }}
                         />
                       )}
@@ -118,13 +113,13 @@ export default function Navbar() {
           </div>
 
           <div className="hidden lg:flex items-center gap-3 ml-auto">
-            <div className="flex items-center gap-2 text-white/85">
-              <div className="h-8 w-8 rounded-full bg-white/10 flex items-center justify-center font-bold text-[12px]">
+            <div className="flex items-center gap-2 text-white">
+              <div className="h-8 w-8 rounded-full bg-white/15 flex items-center justify-center font-bold text-[12px] text-white">
                 {iniciais}
               </div>
               <div className="leading-tight">
-                <p className="text-[12px] font-medium">{profile?.nome ?? "—"}</p>
-                <p className="text-[10px] uppercase tracking-wide text-white/55">
+                <p className="text-[12px] font-medium text-white">{profile?.nome ?? "—"}</p>
+                <p className="text-[10px] uppercase tracking-wide text-white/70">
                   {profile?.role ?? "—"}
                 </p>
               </div>
@@ -132,7 +127,7 @@ export default function Navbar() {
             <button
               type="button"
               onClick={handleLogout}
-              className="inline-flex items-center gap-1.5 h-9 px-3 rounded-lg text-sm font-medium text-white/85 hover:text-white border border-white/20 hover:bg-white/10 transition-colors"
+              className="inline-flex items-center gap-1.5 h-9 px-3 rounded-lg text-sm font-medium text-white border border-white/30 hover:bg-white hover:text-ejc-primary transition-colors"
             >
               <LogOut size={14} /> Sair
             </button>
@@ -143,13 +138,13 @@ export default function Navbar() {
             onClick={() => setMenuOpen((v) => !v)}
             aria-label={menuOpen ? "Fechar menu" : "Abrir menu"}
             aria-expanded={menuOpen}
-            className="lg:hidden ml-auto h-10 w-10 rounded-lg text-white inline-flex items-center justify-center hover:bg-white/10 transition-colors"
+            className="lg:hidden ml-auto h-10 w-10 rounded-lg text-white inline-flex items-center justify-center hover:bg-white/12 transition-colors"
           >
-            {menuOpen ? <X size={20} /> : <Menu size={20} />}
+            {menuOpen ? <X size={22} /> : <Menu size={22} />}
           </button>
         </div>
 
-        <div className="absolute bottom-0 inset-x-0 h-[3px] flex">
+        <div className="absolute bottom-0 inset-x-0 h-[3px] flex" aria-hidden>
           <span className="flex-1 bg-ejc-yellow" />
           <span className="flex-1 bg-ejc-blue" />
           <span className="flex-1 bg-ejc-green" />
@@ -168,7 +163,7 @@ export default function Navbar() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.18 }}
-              className="lg:hidden fixed inset-0 top-[64px] bg-black/45 backdrop-blur-[1px] z-[990]"
+              className="lg:hidden fixed inset-0 top-[64px] bg-black/55 z-[990]"
               aria-label="Fechar menu"
             />
             <motion.div
@@ -177,23 +172,23 @@ export default function Navbar() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -12 }}
               transition={{ duration: 0.22, ease: "easeOut" }}
-              className="lg:hidden fixed top-[64px] inset-x-0 bg-ejc-primary z-[995] shadow-xl flex flex-col"
+              className="lg:hidden fixed top-[64px] inset-x-0 bg-ejc-primary text-white z-[995] shadow-2xl flex flex-col max-h-[calc(100vh-64px)] overflow-y-auto"
             >
-              <div className="px-4 py-3 border-b border-white/10 flex items-center gap-3">
-                <div className="h-10 w-10 rounded-full bg-white/15 text-white flex items-center justify-center font-bold">
+              <div className="px-4 py-4 border-b border-white/15 flex items-center gap-3">
+                <div className="h-11 w-11 rounded-full bg-white/15 text-white flex items-center justify-center font-bold text-sm">
                   {iniciais}
                 </div>
-                <div className="flex-1 leading-tight">
-                  <p className="text-white text-sm font-semibold">
+                <div className="flex-1 leading-tight min-w-0">
+                  <p className="text-white text-[15px] font-semibold truncate">
                     {profile?.nome ?? "—"}
                   </p>
-                  <p className="text-white/55 text-[11px] uppercase tracking-wide">
+                  <p className="text-white/75 text-[11px] uppercase tracking-wide">
                     {profile?.role ?? "—"}
                   </p>
                 </div>
               </div>
 
-              <ul className="flex flex-col py-1">
+              <ul className="flex flex-col py-2">
                 {items.map((item) => {
                   const Icon = item.icon;
                   return (
@@ -202,28 +197,30 @@ export default function Navbar() {
                         to={item.path}
                         className={({ isActive }) =>
                           cn(
-                            "flex items-center gap-3 px-4 py-3 text-[15px] font-medium transition-colors",
+                            "flex items-center gap-3 px-4 py-3.5 text-[15px] font-semibold transition-colors border-l-4",
                             isActive
-                              ? "text-white bg-white/10 border-l-4 border-ejc-yellow"
-                              : "text-white/85 hover:bg-white/5 border-l-4 border-transparent",
+                              ? "text-white bg-white/12 border-ejc-yellow"
+                              : "text-white hover:bg-white/8 border-transparent",
                           )
                         }
                       >
-                        <Icon size={18} />
-                        {item.label}
+                        <Icon size={18} className="shrink-0" />
+                        <span>{item.label}</span>
                       </NavLink>
                     </li>
                   );
                 })}
               </ul>
 
-              <button
-                type="button"
-                onClick={handleLogout}
-                className="mx-3 my-3 inline-flex items-center justify-center gap-2 h-11 rounded-lg bg-ejc-red/20 hover:bg-ejc-red text-white font-semibold transition-colors"
-              >
-                <LogOut size={16} /> Sair
-              </button>
+              <div className="mt-auto p-3 border-t border-white/15">
+                <button
+                  type="button"
+                  onClick={handleLogout}
+                  className="w-full inline-flex items-center justify-center gap-2 h-12 rounded-lg bg-ejc-red text-white font-semibold hover:brightness-110 transition-all"
+                >
+                  <LogOut size={16} /> Sair
+                </button>
+              </div>
             </motion.div>
           </>
         )}

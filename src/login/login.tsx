@@ -122,7 +122,7 @@ export default function Login() {
             <span className="h-2 w-2 rounded-full bg-ejc-red" />
           </div>
           <motion.img
-            src="/logo-ejc.png"
+            src="/logo-ejc1.png"
             alt="Logo EJC"
             className="relative max-w-[280px] w-full drop-shadow-[0_18px_40px_rgba(0,0,0,0.35)]"
             initial={{ opacity: 0, scale: 0.9 }}
