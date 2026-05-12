@@ -2,11 +2,12 @@ import { useEffect, useState } from "react";
 import { useLocation, useNavigate, NavLink } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import {
-  Home as HomeIcon,
+  ShoppingBag,
   LayoutDashboard,
   PackageSearch,
-  ShoppingBag,
+  UserSearch,
   Boxes,
+  UsersRound,
   LogOut,
   Menu,
   X,
@@ -17,16 +18,17 @@ import { cn } from "../lib/cn";
 interface NavItem {
   path: string;
   label: string;
-  icon: typeof HomeIcon;
+  icon: typeof ShoppingBag;
   admin?: boolean;
 }
 
 const ITEMS: NavItem[] = [
-  { path: "/home", label: "Home", icon: HomeIcon },
+  { path: "/home", label: "Home", icon: ShoppingBag },
+  { path: "/cliente", label: "Cliente", icon: UserSearch },
   { path: "/catalog", label: "Catálogo", icon: PackageSearch },
   { path: "/dashboard", label: "Dashboard", icon: LayoutDashboard, admin: true },
-  { path: "/sale", label: "Venda", icon: ShoppingBag },
   { path: "/product", label: "Produtos", icon: Boxes, admin: true },
+  { path: "/usuarios", label: "Usuários", icon: UsersRound, admin: true },
 ];
 
 export default function Navbar() {

@@ -7,10 +7,14 @@ import {
   Users,
   Activity,
   TrendingUp,
+  TriangleAlert,
+  Trophy,
+  PiggyBank,
+  ChevronDown,
 } from "lucide-react";
 import Navbar from "../components/navbar";
-import { supabase } from "../lib/supabase";
-import { Card, Skeleton } from "../components/ui";
+import { supabase, type Client } from "../lib/supabase";
+import { Badge, Button, Card, CardBody, EmptyState, Skeleton } from "../components/ui";
 import { cn } from "../lib/cn";
 
 interface DashboardData {
@@ -20,6 +24,23 @@ interface DashboardData {
   clientes: number;
   transacoes: number;
 }
+
+interface TopConsumer {
+  id: string;
+  codigo: number;
+  nome: string;
+  saldo: number;
+  total_gasto: number;
+  num_compras: number;
+}
+
+function toNum(v: unknown): number {
+  const n = typeof v === "string" ? parseFloat(v) : Number(v);
+  return Number.isFinite(n) ? n : 0;
+}
+
+const fmtBRL = (v: number) =>
+  v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
 interface StatCardProps {
   label: string;
@@ -38,18 +59,7 @@ const ACCENT: Record<StatCardProps["accent"], { bar: string; iconBg: string; ico
   primary: { bar: "from-ejc-primary to-ejc-primary/60", iconBg: "bg-ejc-primary/10", iconColor: "text-ejc-primary" },
 };
 
-function toNum(v: unknown): number {
-  const n = typeof v === "string" ? parseFloat(v) : Number(v);
-  return Number.isFinite(n) ? n : 0;
-}
-
-function AnimatedNumber({
-  value,
-  isCurrency,
-}: {
-  value: number;
-  isCurrency?: boolean;
-}) {
+function AnimatedNumber({ value, isCurrency }: { value: number; isCurrency?: boolean }) {
   const ref = useRef<HTMLSpanElement>(null);
   const inView = useInView(ref, { once: true, margin: "-50px" });
   const [display, setDisplay] = useState(0);
@@ -66,10 +76,7 @@ function AnimatedNumber({
   }, [inView, safe]);
 
   const formatted = isCurrency
-    ? display.toLocaleString("pt-BR", {
-        style: "currency",
-        currency: "BRL",
-      })
+    ? display.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })
     : Math.round(display).toLocaleString("pt-BR");
 
   return <span ref={ref}>{formatted}</span>;
@@ -90,13 +97,7 @@ function StatCard({ label, value, isCurrency, icon, accent, delay = 0 }: StatCar
             <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-ejc-muted">
               {label}
             </p>
-            <span
-              className={cn(
-                "h-9 w-9 rounded-lg flex items-center justify-center",
-                a.iconBg,
-                a.iconColor,
-              )}
-            >
+            <span className={cn("h-9 w-9 rounded-lg flex items-center justify-center", a.iconBg, a.iconColor)}>
               {icon}
             </span>
           </div>
@@ -109,39 +110,109 @@ function StatCard({ label, value, isCurrency, icon, accent, delay = 0 }: StatCar
   );
 }
 
+interface ClientRowProps {
+  codigo: number;
+  nome: string;
+  rightTop: ReactNode;
+  rightBottom?: ReactNode;
+  leftBadge?: ReactNode;
+}
+
+function ClientRow({ codigo, nome, rightTop, rightBottom, leftBadge }: ClientRowProps) {
+  const iniciais = nome
+    .split(" ")
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((s) => s[0]?.toUpperCase())
+    .join("") || "?";
+  return (
+    <li className="flex items-center gap-3 px-4 py-3 border-b border-ejc-border/60 last:border-b-0">
+      <div className="h-9 w-9 shrink-0 rounded-full bg-ejc-primary/10 text-ejc-primary flex items-center justify-center font-bold text-[12px]">
+        {iniciais}
+      </div>
+      <div className="flex-1 min-w-0">
+        <p className="text-[12px] uppercase tracking-wide text-ejc-muted">#{codigo}</p>
+        <p className="font-semibold text-ejc-text truncate text-[14px]">{nome}</p>
+      </div>
+      {leftBadge}
+      <div className="text-right shrink-0">
+        <div className="font-display font-bold tabular-nums text-[15px]">{rightTop}</div>
+        {rightBottom && <div className="text-[11px] text-ejc-muted">{rightBottom}</div>}
+      </div>
+    </li>
+  );
+}
+
 const Dashboard = () => {
   const [dados, setDados] = useState<DashboardData | null>(null);
+  const [negativos, setNegativos] = useState<Client[] | null>(null);
+  const [topConsumers, setTopConsumers] = useState<TopConsumer[] | null>(null);
+  const [positivos, setPositivos] = useState<Client[] | null>(null);
+  const [carregandoPositivos, setCarregandoPositivos] = useState(false);
 
   const buscarDashboard = async () => {
     const { data, error } = await supabase.rpc("get_dashboard");
-    if (error) {
-      console.warn("Dashboard:", error.message);
-      return;
-    }
+    if (error) return;
     const row = Array.isArray(data) ? data[0] : data;
     setDados(row as DashboardData);
   };
 
+  const buscarNegativos = async () => {
+    const { data, error } = await supabase
+      .from("clients")
+      .select("*")
+      .lt("saldo", 0)
+      .order("saldo", { ascending: true });
+    if (error) return;
+    setNegativos((data ?? []) as Client[]);
+  };
+
+  const buscarTopConsumers = async () => {
+    const { data, error } = await supabase.rpc("top_consumers", { p_limit: 10 });
+    if (error) return;
+    setTopConsumers((data ?? []) as TopConsumer[]);
+  };
+
+  const buscarPositivos = async () => {
+    setCarregandoPositivos(true);
+    const { data, error } = await supabase
+      .from("clients")
+      .select("*")
+      .gt("saldo", 0)
+      .order("saldo", { ascending: false });
+    setCarregandoPositivos(false);
+    if (error) return;
+    setPositivos((data ?? []) as Client[]);
+  };
+
   useEffect(() => {
     buscarDashboard();
+    buscarNegativos();
+    buscarTopConsumers();
 
     const channel = supabase
       .channel("dashboard-updates")
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "transactions" },
-        () => buscarDashboard(),
+        () => {
+          buscarDashboard();
+          buscarTopConsumers();
+        },
       )
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "clients" },
-        () => buscarDashboard(),
+        () => {
+          buscarDashboard();
+          buscarNegativos();
+          if (positivos !== null) buscarPositivos();
+        },
       )
       .subscribe();
 
-    return () => {
-      supabase.removeChannel(channel);
-    };
+    return () => { supabase.removeChannel(channel); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (
@@ -169,44 +240,11 @@ const Dashboard = () => {
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            <StatCard
-              label="Total recarregado"
-              value={toNum(dados.total_recarga)}
-              isCurrency
-              icon={<ArrowDownToLine size={18} />}
-              accent="green"
-              delay={0}
-            />
-            <StatCard
-              label="Total em vendas"
-              value={toNum(dados.total_debito)}
-              isCurrency
-              icon={<ArrowUpFromLine size={18} />}
-              accent="red"
-              delay={0.05}
-            />
-            <StatCard
-              label="Saldo dos clientes"
-              value={toNum(dados.saldo_minibox)}
-              isCurrency
-              icon={<Wallet size={18} />}
-              accent="blue"
-              delay={0.1}
-            />
-            <StatCard
-              label="Clientes cadastrados"
-              value={toNum(dados.clientes)}
-              icon={<Users size={18} />}
-              accent="yellow"
-              delay={0.15}
-            />
-            <StatCard
-              label="Transações"
-              value={toNum(dados.transacoes)}
-              icon={<Activity size={18} />}
-              accent="primary"
-              delay={0.2}
-            />
+            <StatCard label="Total recarregado" value={toNum(dados.total_recarga)} isCurrency icon={<ArrowDownToLine size={18} />} accent="green" delay={0} />
+            <StatCard label="Total em vendas" value={toNum(dados.total_debito)} isCurrency icon={<ArrowUpFromLine size={18} />} accent="red" delay={0.05} />
+            <StatCard label="Saldo dos clientes" value={toNum(dados.saldo_minibox)} isCurrency icon={<Wallet size={18} />} accent="blue" delay={0.1} />
+            <StatCard label="Clientes cadastrados" value={toNum(dados.clientes)} icon={<Users size={18} />} accent="yellow" delay={0.15} />
+            <StatCard label="Transações" value={toNum(dados.transacoes)} icon={<Activity size={18} />} accent="primary" delay={0.2} />
             <motion.div
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
@@ -237,6 +275,152 @@ const Dashboard = () => {
             </motion.div>
           </div>
         )}
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-8">
+          <Card className="overflow-hidden">
+            <div className="px-5 py-4 border-b border-ejc-border/60 flex items-center gap-2">
+              <span className="h-8 w-8 rounded-lg bg-ejc-red/10 text-ejc-red flex items-center justify-center">
+                <TriangleAlert size={16} />
+              </span>
+              <div className="flex-1">
+                <h2 className="font-semibold text-ejc-primary text-[15px]">Saldos negativos</h2>
+                <p className="text-[12px] text-ejc-muted">
+                  Clientes com saldo abaixo de zero
+                </p>
+              </div>
+              {negativos !== null && (
+                <Badge variant="danger" dot>{negativos.length}</Badge>
+              )}
+            </div>
+            {negativos === null ? (
+              <div className="p-4 space-y-2">
+                {Array.from({ length: 3 }).map((_, i) => (
+                  <Skeleton key={i} className="h-12 w-full" />
+                ))}
+              </div>
+            ) : negativos.length === 0 ? (
+              <EmptyState
+                className="m-4"
+                title="Nenhum cliente negativado"
+                description="Todos os crachás estão com saldo ≥ 0."
+              />
+            ) : (
+              <ul>
+                {negativos.map((c) => (
+                  <ClientRow
+                    key={c.id}
+                    codigo={c.codigo}
+                    nome={c.nome}
+                    rightTop={
+                      <span className="text-ejc-red">
+                        {fmtBRL(toNum(c.saldo))}
+                      </span>
+                    }
+                    rightBottom="Saldo"
+                  />
+                ))}
+              </ul>
+            )}
+          </Card>
+
+          <Card className="overflow-hidden">
+            <div className="px-5 py-4 border-b border-ejc-border/60 flex items-center gap-2">
+              <span className="h-8 w-8 rounded-lg bg-ejc-yellow/20 text-[#7A5B00] flex items-center justify-center">
+                <Trophy size={16} />
+              </span>
+              <div className="flex-1">
+                <h2 className="font-semibold text-ejc-primary text-[15px]">Top 10 consumidores</h2>
+                <p className="text-[12px] text-ejc-muted">
+                  Maiores gastos acumulados
+                </p>
+              </div>
+            </div>
+            {topConsumers === null ? (
+              <div className="p-4 space-y-2">
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <Skeleton key={i} className="h-12 w-full" />
+                ))}
+              </div>
+            ) : topConsumers.length === 0 ? (
+              <EmptyState
+                className="m-4"
+                title="Sem dados ainda"
+                description="Nenhuma venda foi realizada até agora."
+              />
+            ) : (
+              <ul>
+                {topConsumers.map((c, i) => (
+                  <ClientRow
+                    key={c.id}
+                    codigo={c.codigo}
+                    nome={c.nome}
+                    leftBadge={
+                      <Badge variant={i === 0 ? "warning" : "neutral"}>
+                        #{i + 1}
+                      </Badge>
+                    }
+                    rightTop={fmtBRL(toNum(c.total_gasto))}
+                    rightBottom={`${c.num_compras} ${c.num_compras === 1 ? "compra" : "compras"}`}
+                  />
+                ))}
+              </ul>
+            )}
+          </Card>
+        </div>
+
+        <Card className="mt-4 overflow-hidden">
+          <div className="px-5 py-4 border-b border-ejc-border/60 flex items-center gap-2">
+            <span className="h-8 w-8 rounded-lg bg-ejc-green/12 text-ejc-green flex items-center justify-center">
+              <PiggyBank size={16} />
+            </span>
+            <div className="flex-1">
+              <h2 className="font-semibold text-ejc-primary text-[15px]">Saldos positivos</h2>
+              <p className="text-[12px] text-ejc-muted">
+                Carregue sob demanda — pode haver muitos
+              </p>
+            </div>
+            {positivos !== null ? (
+              <Badge variant="success" dot>{positivos.length}</Badge>
+            ) : (
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={buscarPositivos}
+                loading={carregandoPositivos}
+              >
+                <ChevronDown size={14} /> Mostrar
+              </Button>
+            )}
+          </div>
+
+          {positivos === null ? (
+            <div className="p-6 text-center text-sm text-ejc-muted">
+              Clique em <strong className="text-ejc-primary">Mostrar</strong> para listar todos os clientes com saldo positivo.
+            </div>
+          ) : positivos.length === 0 ? (
+            <EmptyState
+              className="m-4"
+              title="Nenhum cliente com saldo positivo"
+              description="Todos os crachás estão com saldo ≤ 0."
+            />
+          ) : (
+            <ul>
+              {positivos.map((c) => (
+                <ClientRow
+                  key={c.id}
+                  codigo={c.codigo}
+                  nome={c.nome}
+                  rightTop={
+                    <span className="text-ejc-green">
+                      {fmtBRL(toNum(c.saldo))}
+                    </span>
+                  }
+                  rightBottom="Saldo"
+                />
+              ))}
+            </ul>
+          )}
+        </Card>
       </main>
     </div>
   );

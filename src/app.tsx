@@ -9,10 +9,11 @@ import { ToastProvider } from './components/ui/toast';
 import Login from './login/login';
 import SignUp from './sign-up/signup';
 import Home from './home/home';
+import Cliente from './cliente/cliente';
 import Dashboard from './dashboard/dashboard';
-import Sale from './sale/sale';
 import Product from './product/product';
 import Catalog from './catalog/catalog';
+import Usuarios from './usuarios/usuarios';
 
 function PageTransition({ children }: { children: ReactNode }) {
   return (
@@ -40,13 +41,14 @@ function AnimatedRoutes() {
           element={<PrivateRoute><PageTransition><Home /></PageTransition></PrivateRoute>}
         />
         <Route
+          path="/cliente"
+          element={<PrivateRoute><PageTransition><Cliente /></PageTransition></PrivateRoute>}
+        />
+        <Route
           path="/catalog"
           element={<PrivateRoute><PageTransition><Catalog /></PageTransition></PrivateRoute>}
         />
-        <Route
-          path="/sale"
-          element={<PrivateRoute><PageTransition><Sale /></PageTransition></PrivateRoute>}
-        />
+        <Route path="/sale" element={<Navigate to="/home" replace />} />
         <Route
           path="/dashboard"
           element={
@@ -60,6 +62,14 @@ function AnimatedRoutes() {
           element={
             <PrivateRoute requireRole="admin">
               <PageTransition><Product /></PageTransition>
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/usuarios"
+          element={
+            <PrivateRoute requireRole="admin">
+              <PageTransition><Usuarios /></PageTransition>
             </PrivateRoute>
           }
         />
