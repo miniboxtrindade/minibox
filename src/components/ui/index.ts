@@ -9,6 +9,7 @@ export {
   CardFooter,
 } from "./card";
 export { EmptyState } from "./empty-state";
+export { ImageUploader } from "./image-uploader";
 export { Input } from "./input";
 export { Sheet } from "./sheet";
 export { Skeleton } from "./skeleton";
