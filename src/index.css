@@ -1,5 +1,36 @@
+@import "tailwindcss";
+
 /* =========================
-   PALETA EJC + BASE GLOBAL
+   TAILWIND v4 @theme — paleta EJC como tokens utilitários
+========================= */
+
+@theme {
+  --color-ejc-yellow: #FFD400;
+  --color-ejc-blue: #009FE3;
+  --color-ejc-green: #00A859;
+  --color-ejc-red: #E30613;
+  --color-ejc-primary: #151551;
+  --color-ejc-primary-hover: #1F1FA8;
+  --color-ejc-surface: #FFFFFF;
+  --color-ejc-bg: #F4F6F9;
+  --color-ejc-text: #1B1B2A;
+  --color-ejc-muted: #6B6B7B;
+  --color-ejc-border: #E2E4EA;
+
+  --font-sans: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  --font-display: 'Manrope', 'Inter', sans-serif;
+
+  --radius-ejc-sm: 6px;
+  --radius-ejc-md: 10px;
+  --radius-ejc-lg: 16px;
+
+  --shadow-ejc-sm: 0 2px 6px rgba(0, 0, 0, 0.05);
+  --shadow-ejc-md: 0 4px 12px rgba(0, 0, 0, 0.08);
+  --shadow-ejc-lg: 0 12px 32px rgba(0, 0, 0, 0.18);
+}
+
+/* =========================
+   PALETA EJC + BASE GLOBAL (CSS legado — coexistência durante migração)
 ========================= */
 
 :root {
