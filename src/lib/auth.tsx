@@ -37,10 +37,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
     supabase
       .from('profiles')
-      .select('id, nome, role')
+      .select('id, nome, email, role, ativo')
       .eq('id', session.user.id)
-      .single()
-      .then(({ data }) => setProfile(data as Profile | null));
+      .maybeSingle()
+      .then(async ({ data }) => {
+        // RLS esconde perfis inativos: data vira null → desloga.
+        if (!data) {
+          await supabase.auth.signOut();
+          setProfile(null);
+          return;
+        }
+        setProfile(data as Profile);
+      });
   }, [session]);
 
   const signOut = async () => {

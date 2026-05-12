@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Search, UserPlus, Wallet, ArrowDownToLine, ArrowUpFromLine } from 'lucide-react';
+import { Search, UserPlus, Wallet, ArrowDownToLine, ArrowUpFromLine, Trash2 } from 'lucide-react';
 import Navbar from '../components/navbar';
 import { supabase, type Client } from '../lib/supabase';
+import { useAuth } from '../lib/auth';
 import { useToast } from '../components/ui/toast';
 import { useModal } from '../lib/modal';
 import { friendlyError } from '../lib/errors';
@@ -23,6 +24,8 @@ const QUICK_VALUES = [5, 10, 20, 50];
 const Cliente = () => {
   const toast = useToast();
   const { confirm } = useModal();
+  const { profile } = useAuth();
+  const isAdmin = profile?.role === 'admin';
 
   const [codigoBusca, setCodigoBusca] = useState('');
   const [cliente, setCliente] = useState<Client | null>(null);
@@ -107,6 +110,30 @@ const Cliente = () => {
     }
     setValor('');
     toast.success(isRecarga ? 'Saldo recarregado!' : 'Saldo debitado.');
+  };
+
+  const excluirCliente = async () => {
+    if (!cliente) return;
+    const ok = await confirm({
+      variant: 'error',
+      title: 'Excluir cliente',
+      message: `Excluir ${cliente.nome} (crachá #${cliente.codigo})? O cliente não aparecerá mais e o número do crachá ficará livre para reuso. Esta ação não apaga o histórico — pode ser revertida no banco.`,
+      confirmLabel: 'Excluir',
+    });
+    if (!ok) return;
+    setBusy(true);
+    const { error } = await supabase.rpc('set_client_active', {
+      p_id: cliente.id,
+      p_ativo: false,
+    });
+    setBusy(false);
+    if (error) {
+      toast.error(friendlyError(error));
+      return;
+    }
+    toast.success('Cliente excluído.');
+    setCliente(null);
+    setCodigoBusca('');
   };
 
   const cadastrarCliente = async (e: React.FormEvent) => {
@@ -262,6 +289,20 @@ const Cliente = () => {
                     <ArrowUpFromLine size={16} /> Debitar
                   </Button>
                 </div>
+
+                {isAdmin && (
+                  <div className="pt-3 border-t border-ejc-border/60 flex justify-end">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={excluirCliente}
+                      loading={busy}
+                      className="text-ejc-red hover:bg-ejc-red/5"
+                    >
+                      <Trash2 size={14} /> Excluir cliente
+                    </Button>
+                  </div>
+                )}
               </CardBody>
             </Card>
 

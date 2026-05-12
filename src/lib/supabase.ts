@@ -28,6 +28,7 @@ export interface Profile {
   nome: string | null;
   email: string | null;
   role: UserRole;
+  ativo: boolean;
 }
 
 export interface Client {

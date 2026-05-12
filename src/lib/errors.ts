@@ -31,6 +31,8 @@ const RPC_MESSAGES: Record<string, string> = {
     'Você não tem permissão para realizar esta ação.',
   NAO_PODE_REMOVER_PROPRIO_ADMIN:
     'Você não pode remover seu próprio acesso de administrador.',
+  NAO_PODE_DESATIVAR_PROPRIO_USUARIO:
+    'Você não pode desativar seu próprio usuário.',
   // SALDO_INSUFICIENTE foi removido das RPCs (saldo pode ficar negativo),
   // mas mantemos a tradução caso volte em alguma RPC futura.
   SALDO_INSUFICIENTE:

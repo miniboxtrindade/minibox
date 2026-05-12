@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { ShieldCheck, UserCog, UsersRound, KeyRound } from "lucide-react";
+import { ShieldCheck, UserCog, UsersRound, KeyRound, Trash2 } from "lucide-react";
 import Navbar from "../components/navbar";
 import { supabase, type Profile, type UserRole } from "../lib/supabase";
 import { useAuth } from "../lib/auth";
@@ -24,6 +24,7 @@ export default function Usuarios() {
   const [usuarios, setUsuarios] = useState<Profile[] | null>(null);
   const [working, setWorking] = useState<string | null>(null);
   const [sendingReset, setSendingReset] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState<string | null>(null);
 
   const buscar = async () => {
     const { data, error } = await supabase
@@ -82,6 +83,32 @@ export default function Usuarios() {
     toast.success(
       role === "admin" ? "Usuário promovido a admin!" : "Usuário rebaixado a caixa.",
     );
+  };
+
+  const excluirUsuario = async (u: Profile) => {
+    if (u.id === currentProfile?.id) {
+      toast.warning("Você não pode excluir o próprio usuário.");
+      return;
+    }
+    const ok = await confirm({
+      variant: "error",
+      title: "Excluir usuário",
+      message: `Excluir ${u.nome ?? "este usuário"}? O acesso ao sistema será bloqueado imediatamente. Esta ação pode ser revertida no banco se necessário.`,
+      confirmLabel: "Excluir",
+    });
+    if (!ok) return;
+
+    setDeleting(u.id);
+    const { error } = await supabase.rpc("set_user_active", {
+      p_user_id: u.id,
+      p_ativo: false,
+    });
+    setDeleting(null);
+    if (error) {
+      toast.error(friendlyError(error));
+      return;
+    }
+    toast.success("Usuário excluído.");
   };
 
   const resetarSenha = async (u: Profile) => {
@@ -223,6 +250,17 @@ export default function Usuarios() {
                             <ShieldCheck size={14} /> Promover
                           </Button>
                         )}
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          disabled={isSelf}
+                          loading={deleting === u.id}
+                          onClick={() => excluirUsuario(u)}
+                          title={isSelf ? "Você não pode excluir o próprio usuário" : "Excluir usuário"}
+                          className="text-ejc-red hover:bg-ejc-red/5"
+                        >
+                          <Trash2 size={14} /> Excluir
+                        </Button>
                       </div>
                     </CardBody>
                   </Card>
