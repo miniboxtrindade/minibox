@@ -4,13 +4,11 @@ import { motion } from 'framer-motion';
 import { User, Mail, Lock, ArrowRight } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useToast } from '../components/ui/toast';
-import { useModal } from '../lib/modal';
 import { Button, Input } from '../components/ui';
 
 export default function SignUp() {
   const navigate = useNavigate();
   const toast = useToast();
-  const { notify } = useModal();
 
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -45,12 +43,8 @@ export default function SignUp() {
       return;
     }
 
-    notify({
-      variant: 'success',
-      title: 'Cadastro realizado',
-      message: 'Verifique seu e-mail se a confirmação estiver ativada.',
-      onConfirm: () => navigate('/login'),
-    });
+    toast.success('Cadastro realizado!');
+    navigate('/login');
   };
 
   return (
