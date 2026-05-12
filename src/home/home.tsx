@@ -75,18 +75,19 @@ const Home = () => {
       toast.warning('Digite um valor válido.');
       return;
     }
-    if (tipo === 'DEBITO' && v > Number(cliente.saldo)) {
-      toast.warning('Saldo insuficiente para esse débito.');
-      return;
-    }
 
     const isRecarga = tipo === 'RECARGA';
+    const saldoAtual = Number(cliente.saldo);
+    const ficaraNegativo = !isRecarga && v > saldoAtual;
+    const novoSaldo = isRecarga ? saldoAtual + v : saldoAtual - v;
     const ok = await confirm({
-      variant: isRecarga ? 'success' : 'warning',
+      variant: ficaraNegativo ? 'error' : (isRecarga ? 'success' : 'warning'),
       title: isRecarga ? 'Confirmar recarga' : 'Confirmar débito',
       message: isRecarga
-        ? `Recarregar R$ ${v.toFixed(2)} no crachá de ${cliente.nome}?`
-        : `Debitar R$ ${v.toFixed(2)} do crachá de ${cliente.nome}? Saldo atual: R$ ${Number(cliente.saldo).toFixed(2)}.`,
+        ? `Recarregar R$ ${v.toFixed(2)} no crachá de ${cliente.nome}? Saldo passará a R$ ${novoSaldo.toFixed(2)}.`
+        : ficaraNegativo
+          ? `Debitar R$ ${v.toFixed(2)} do crachá de ${cliente.nome}? Saldo atual é R$ ${saldoAtual.toFixed(2)} e ficará NEGATIVO em R$ ${novoSaldo.toFixed(2)}.`
+          : `Debitar R$ ${v.toFixed(2)} do crachá de ${cliente.nome}? Saldo passará de R$ ${saldoAtual.toFixed(2)} para R$ ${novoSaldo.toFixed(2)}.`,
       confirmLabel: isRecarga ? 'Recarregar' : 'Debitar',
     });
     if (!ok) return;
