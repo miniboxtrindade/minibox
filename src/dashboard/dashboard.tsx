@@ -45,7 +45,8 @@ function formatRelative(iso: string): string {
 interface DashboardData {
   total_recarga: number;
   total_debito: number;
-  saldo_minibox: number;
+  saldo_minibox: number; // soma dos saldos positivos
+  saldo_devedor: number; // soma do |saldo| onde saldo < 0
   clientes: number;
   transacoes: number;
 }
@@ -402,7 +403,8 @@ const Dashboard = () => {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             <StatCard label="Total recarregado" value={toNum(dados.total_recarga)} isCurrency icon={<ArrowDownToLine size={18} />} accent="green" delay={0} />
             <StatCard label="Total em vendas" value={toNum(dados.total_debito)} isCurrency icon={<ArrowUpFromLine size={18} />} accent="red" delay={0.05} />
-            <StatCard label="Saldo dos clientes" value={toNum(dados.saldo_minibox)} isCurrency icon={<Wallet size={18} />} accent="blue" delay={0.1} />
+            <StatCard label="Saldo nos crachás" value={toNum(dados.saldo_minibox)} isCurrency icon={<Wallet size={18} />} accent="blue" delay={0.1} />
+            <StatCard label="A receber" value={toNum(dados.saldo_devedor)} isCurrency icon={<TriangleAlert size={18} />} accent="red" delay={0.12} />
             <StatCard label="Clientes cadastrados" value={toNum(dados.clientes)} icon={<Users size={18} />} accent="yellow" delay={0.15} />
             <StatCard label="Transações" value={toNum(dados.transacoes)} icon={<Activity size={18} />} accent="primary" delay={0.2} />
             <motion.div
@@ -423,12 +425,12 @@ const Dashboard = () => {
                   </div>
                   <p className="font-display text-3xl font-extrabold tabular-nums">
                     <AnimatedNumber
-                      value={toNum(dados.total_recarga) - toNum(dados.saldo_minibox)}
+                      value={toNum(dados.total_recarga) - toNum(dados.saldo_minibox) + toNum(dados.saldo_devedor)}
                       isCurrency
                     />
                   </p>
                   <p className="text-[11px] text-white/55 mt-1">
-                    recargas − saldo a pagar aos clientes
+                    recargas − saldo nos crachás + a receber
                   </p>
                 </div>
               </Card>

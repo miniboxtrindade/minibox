@@ -8,6 +8,7 @@ import {
   Wallet,
   ImageOff,
   Trash2,
+  CheckCircle2,
 } from "lucide-react";
 import Navbar from "../components/navbar";
 import {
@@ -38,6 +39,13 @@ interface CartItem {
   quantidade: number;
 }
 
+interface VendaResumo {
+  cliente: { codigo: number; nome: string; saldoAntes: number; saldoDepois: number };
+  itens: CartItem[];
+  total: number;
+  data: Date;
+}
+
 export default function Home() {
   const toast = useToast();
   const { confirm } = useModal();
@@ -51,6 +59,7 @@ export default function Home() {
   const [busca, setBusca] = useState("");
   const [cartOpen, setCartOpen] = useState(false);
   const [finalizando, setFinalizando] = useState(false);
+  const [resumoVenda, setResumoVenda] = useState<VendaResumo | null>(null);
 
   const filtros = useMemo(() => {
     const list: { key: string; label: string; emoji: string }[] = [
@@ -212,9 +221,24 @@ export default function Home() {
       toast.error(friendlyError(error));
       return;
     }
-    toast.success("Venda realizada!");
+
+    setResumoVenda({
+      cliente: {
+        codigo: cliente.codigo,
+        nome: cliente.nome,
+        saldoAntes: saldoAtual,
+        saldoDepois: novoSaldo,
+      },
+      itens: carrinho.map((i) => ({ ...i })),
+      total,
+      data: new Date(),
+    });
     setCarrinho([]);
     setCartOpen(false);
+  };
+
+  const finalizarResumo = () => {
+    setResumoVenda(null);
     setCliente(null);
     setCodigo("");
   };
@@ -535,6 +559,122 @@ export default function Home() {
             Finalizar venda
           </Button>
         </div>
+      </Sheet>
+
+      <Sheet
+        open={!!resumoVenda}
+        onClose={finalizarResumo}
+        side="bottom"
+        showCloseButton={false}
+      >
+        {resumoVenda && (
+          <div className="p-5">
+            <div className="flex flex-col items-center text-center mb-4">
+              <div className="h-14 w-14 rounded-full bg-ejc-green/15 text-ejc-green flex items-center justify-center mb-2">
+                <CheckCircle2 size={32} />
+              </div>
+              <h2 className="font-display text-xl font-bold text-ejc-primary">
+                Venda concluída
+              </h2>
+              <p className="text-sm text-ejc-muted mt-0.5">
+                {resumoVenda.data.toLocaleString("pt-BR", {
+                  day: "2-digit",
+                  month: "2-digit",
+                  year: "numeric",
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })}
+              </p>
+            </div>
+
+            <Card className="mb-3">
+              <CardBody className="flex items-center gap-3">
+                <div className="h-11 w-11 rounded-full bg-ejc-primary/10 text-ejc-primary flex items-center justify-center font-bold text-sm">
+                  {resumoVenda.cliente.nome
+                    .split(" ")
+                    .filter(Boolean)
+                    .slice(0, 2)
+                    .map((s) => s[0]?.toUpperCase())
+                    .join("") || "?"}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-[11px] uppercase tracking-wide text-ejc-muted">
+                    Cliente · #{resumoVenda.cliente.codigo}
+                  </p>
+                  <h3 className="font-semibold text-ejc-text truncate">
+                    {resumoVenda.cliente.nome}
+                  </h3>
+                </div>
+              </CardBody>
+            </Card>
+
+            <div className="mb-3">
+              <p className="text-[11px] uppercase tracking-wide text-ejc-muted mb-2">
+                Itens ({resumoVenda.itens.reduce((a, i) => a + i.quantidade, 0)})
+              </p>
+              <ul className="bg-ejc-bg rounded-lg divide-y divide-ejc-border/60 max-h-[35vh] overflow-y-auto">
+                {resumoVenda.itens.map((item) => (
+                  <li
+                    key={item.product_id}
+                    className="flex items-center gap-3 px-3 py-2.5"
+                  >
+                    <span className="inline-flex items-center justify-center min-w-6 h-6 px-1.5 rounded-md bg-ejc-primary/10 text-ejc-primary font-bold text-[12px]">
+                      {item.quantidade}×
+                    </span>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-ejc-text leading-tight truncate text-[14px]">
+                        {item.nome}
+                      </p>
+                      <p className="text-[11px] text-ejc-muted">
+                        R$ {item.preco.toFixed(2)} cada
+                      </p>
+                    </div>
+                    <p className="font-semibold tabular-nums text-[14px]">
+                      R$ {(item.preco * item.quantidade).toFixed(2)}
+                    </p>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <div className="space-y-1.5 mb-4 text-[14px]">
+              <div className="flex justify-between text-ejc-muted">
+                <span>Saldo anterior</span>
+                <span className="tabular-nums">
+                  R$ {resumoVenda.cliente.saldoAntes.toFixed(2)}
+                </span>
+              </div>
+              <div className="flex justify-between text-ejc-red">
+                <span>Total da compra</span>
+                <span className="tabular-nums font-semibold">
+                  − R$ {resumoVenda.total.toFixed(2)}
+                </span>
+              </div>
+              <div className="border-t border-ejc-border/60 pt-2 flex justify-between">
+                <span className="font-semibold text-ejc-text">Novo saldo</span>
+                <span
+                  className={cn(
+                    "font-display font-extrabold tabular-nums text-lg",
+                    resumoVenda.cliente.saldoDepois < 0
+                      ? "text-ejc-red"
+                      : "text-ejc-primary",
+                  )}
+                >
+                  R$ {resumoVenda.cliente.saldoDepois.toFixed(2)}
+                </span>
+              </div>
+            </div>
+
+            <Button
+              variant="primary"
+              size="lg"
+              fullWidth
+              onClick={finalizarResumo}
+            >
+              Concluir
+            </Button>
+          </div>
+        )}
       </Sheet>
     </div>
   );
