@@ -1,40 +1,74 @@
 import { useState, useEffect } from "react";
-import '../home/home.css';
-import Navbar from '../components/navbar';
+import { motion } from "framer-motion";
+import { PackagePlus, Pencil, Trash2, ImageOff, Save } from "lucide-react";
+import Navbar from "../components/navbar";
 import {
   supabase,
   type Product,
   PRODUCT_CATEGORIES,
   CATEGORY_LABELS,
   CATEGORY_EMOJI,
-} from '../lib/supabase';
-import { useModal } from '../lib/modal';
-import { useToast } from '../components/ui/toast';
-import { ImageUploader } from '../components/ui/image-uploader';
-import { uploadProductImage, deleteProductImage } from '../lib/storage';
+} from "../lib/supabase";
+import { useModal } from "../lib/modal";
+import { useToast } from "../components/ui/toast";
+import {
+  Badge,
+  Button,
+  Card,
+  CardBody,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  EmptyState,
+  ImageUploader,
+  Input,
+  Sheet,
+  Skeleton,
+} from "../components/ui";
+import { uploadProductImage, deleteProductImage } from "../lib/storage";
+import { cn } from "../lib/cn";
+
+interface FormState {
+  nome: string;
+  preco: string;
+  quantidade: string;
+  categoria: Product["categoria"];
+}
+
+const EMPTY_FORM: FormState = {
+  nome: "",
+  preco: "",
+  quantidade: "",
+  categoria: "ALIMENTO",
+};
+
+function stockBadge(qtd: number) {
+  if (qtd <= 0) return { variant: "danger" as const, label: "Esgotado" };
+  if (qtd <= 5) return { variant: "warning" as const, label: `${qtd} restantes` };
+  return { variant: "success" as const, label: `${qtd} em estoque` };
+}
 
 export default function ProductPage() {
   const { confirm } = useModal();
   const toast = useToast();
 
-  const [produtos, setProdutos] = useState<Product[]>([]);
-  const [novo, setNovo] = useState({
-    nome: "",
-    preco: "",
-    quantidade: "",
-    categoria: "ALIMENTO" as Product['categoria'],
-  });
+  const [produtos, setProdutos] = useState<Product[] | null>(null);
+  const [novo, setNovo] = useState<FormState>(EMPTY_FORM);
   const [imagem, setImagem] = useState<File | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
+  const [editing, setEditing] = useState<Product | null>(null);
+  const [editForm, setEditForm] = useState<FormState>(EMPTY_FORM);
+  const [editImage, setEditImage] = useState<File | null>(null);
+  const [savingEdit, setSavingEdit] = useState(false);
+
   const buscar = async () => {
     const { data, error } = await supabase
-      .from('products')
-      .select('*')
-      .order('nome');
-
+      .from("products")
+      .select("*")
+      .order("nome");
     if (error) {
-      toast.error('Erro ao buscar produtos.');
+      toast.error("Erro ao buscar produtos.");
       return;
     }
     setProdutos((data ?? []) as Product[]);
@@ -42,24 +76,21 @@ export default function ProductPage() {
 
   useEffect(() => {
     buscar();
-
     const channel = supabase
-      .channel('admin-products')
+      .channel("admin-products")
       .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'products' },
+        "postgres_changes",
+        { event: "*", schema: "public", table: "products" },
         () => buscar(),
       )
       .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
+    return () => { supabase.removeChannel(channel); };
   }, []);
 
-  const criarProduto = async () => {
+  const criarProduto = async (e: React.FormEvent) => {
+    e.preventDefault();
     if (!novo.nome || !novo.preco || !novo.quantidade) {
-      toast.warning('Preencha todos os campos.');
+      toast.warning("Preencha todos os campos.");
       return;
     }
 
@@ -67,14 +98,12 @@ export default function ProductPage() {
     try {
       let imagem_url: string | null = null;
       let imagem_path: string | null = null;
-
       if (imagem) {
-        const uploaded = await uploadProductImage(imagem);
-        imagem_url = uploaded.imagem_url;
-        imagem_path = uploaded.imagem_path;
+        const up = await uploadProductImage(imagem);
+        imagem_url = up.imagem_url;
+        imagem_path = up.imagem_path;
       }
-
-      const { error } = await supabase.from('products').insert({
+      const { error } = await supabase.from("products").insert({
         nome: novo.nome,
         preco: Number(novo.preco),
         quantidade: Number(novo.quantidade),
@@ -82,153 +111,342 @@ export default function ProductPage() {
         imagem_url,
         imagem_path,
       });
-
       if (error) {
         if (imagem_path) await deleteProductImage(imagem_path);
         toast.error(error.message);
         return;
       }
-
-      setNovo({ nome: "", preco: "", quantidade: "", categoria: "ALIMENTO" });
+      setNovo(EMPTY_FORM);
       setImagem(null);
-      toast.success('Produto adicionado!');
+      toast.success("Produto adicionado!");
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err);
-      toast.error(`Falha no upload: ${msg}`);
+      toast.error(`Falha: ${msg}`);
     } finally {
       setSubmitting(false);
     }
   };
 
-  const atualizar = async (id: string, campo: string, valor: unknown) => {
-    const { error } = await supabase
-      .from('products')
-      .update({ [campo]: valor, updated_at: new Date().toISOString() })
-      .eq('id', id);
+  const abrirEdicao = (p: Product) => {
+    setEditing(p);
+    setEditForm({
+      nome: p.nome,
+      preco: String(p.preco),
+      quantidade: String(p.quantidade),
+      categoria: p.categoria,
+    });
+    setEditImage(null);
+  };
 
-    if (error) toast.error(error.message);
+  const salvarEdicao = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editing) return;
+    if (!editForm.nome || !editForm.preco || !editForm.quantidade) {
+      toast.warning("Preencha todos os campos.");
+      return;
+    }
+
+    setSavingEdit(true);
+    try {
+      let imagem_url = editing.imagem_url;
+      let imagem_path = editing.imagem_path;
+
+      if (editImage) {
+        const up = await uploadProductImage(editImage);
+        const oldPath = imagem_path;
+        imagem_url = up.imagem_url;
+        imagem_path = up.imagem_path;
+        if (oldPath) await deleteProductImage(oldPath);
+      }
+
+      const { error } = await supabase
+        .from("products")
+        .update({
+          nome: editForm.nome,
+          preco: Number(editForm.preco),
+          quantidade: Number(editForm.quantidade),
+          categoria: editForm.categoria,
+          imagem_url,
+          imagem_path,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", editing.id);
+
+      if (error) {
+        toast.error(error.message);
+        return;
+      }
+      toast.success("Produto atualizado!");
+      setEditing(null);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      toast.error(`Falha: ${msg}`);
+    } finally {
+      setSavingEdit(false);
+    }
   };
 
   const deletar = async (p: Product) => {
     const ok = await confirm({
-      variant: 'warning',
-      title: 'Excluir produto',
+      variant: "warning",
+      title: "Excluir produto",
       message: `Deseja realmente excluir "${p.nome}"?`,
-      confirmLabel: 'Excluir',
+      confirmLabel: "Excluir",
     });
     if (!ok) return;
-
-    const { error } = await supabase.from('products').delete().eq('id', p.id);
+    const { error } = await supabase.from("products").delete().eq("id", p.id);
     if (error) {
       toast.error(error.message);
       return;
     }
     await deleteProductImage(p.imagem_path);
+    toast.success("Produto excluído.");
   };
 
   return (
-    <div className="home-page">
-
+    <div className="min-h-screen bg-ejc-bg">
       <Navbar />
 
-      <div className="home-content">
+      <main className="max-w-5xl mx-auto px-4 pt-[88px] pb-12 md:px-6 lg:pt-[100px]">
+        <header className="mb-6">
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-ejc-blue">
+            Administração
+          </p>
+          <h1 className="font-display text-2xl sm:text-3xl font-bold text-ejc-primary mt-1 tracking-tight">
+            Produtos
+          </h1>
+        </header>
 
-        <h2>Produtos</h2>
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <PackagePlus size={18} /> Novo produto
+            </CardTitle>
+            <CardDescription>
+              A imagem é opcional e será otimizada para WebP automaticamente.
+            </CardDescription>
+          </CardHeader>
+          <CardBody>
+            <form onSubmit={criarProduto} className="grid grid-cols-1 md:grid-cols-[260px_1fr] gap-5">
+              <ImageUploader
+                value={imagem}
+                onChange={setImagem}
+                onError={(m) => toast.warning(m)}
+              />
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <Input
+                  label="Nome"
+                  placeholder="Ex: Coca-Cola lata"
+                  value={novo.nome}
+                  onChange={(e) => setNovo({ ...novo, nome: e.target.value })}
+                  containerClassName="sm:col-span-2"
+                />
+                <Input
+                  label="Preço (R$)"
+                  type="number"
+                  step="0.01"
+                  placeholder="0,00"
+                  value={novo.preco}
+                  onChange={(e) => setNovo({ ...novo, preco: e.target.value })}
+                />
+                <Input
+                  label="Estoque"
+                  type="number"
+                  placeholder="0"
+                  value={novo.quantidade}
+                  onChange={(e) => setNovo({ ...novo, quantidade: e.target.value })}
+                />
+                <div className="flex flex-col gap-1.5 sm:col-span-2">
+                  <label className="text-[13px] font-medium text-ejc-text">
+                    Categoria
+                  </label>
+                  <div className="grid grid-cols-2 gap-2">
+                    {PRODUCT_CATEGORIES.map((c) => {
+                      const active = novo.categoria === c;
+                      return (
+                        <button
+                          key={c}
+                          type="button"
+                          onClick={() => setNovo({ ...novo, categoria: c })}
+                          className={cn(
+                            "h-11 px-3 rounded-lg border text-sm font-medium inline-flex items-center gap-2 transition-colors",
+                            active
+                              ? "bg-ejc-primary text-white border-ejc-primary"
+                              : "bg-white text-ejc-text border-ejc-border hover:border-ejc-primary/40",
+                          )}
+                        >
+                          <span>{CATEGORY_EMOJI[c]}</span>
+                          {CATEGORY_LABELS[c]}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+                <Button
+                  type="submit"
+                  size="lg"
+                  variant="success"
+                  loading={submitting}
+                  fullWidth
+                  className="sm:col-span-2 mt-1"
+                >
+                  Adicionar produto
+                </Button>
+              </div>
+            </form>
+          </CardBody>
+        </Card>
 
-        <div className="produto-edit-card">
-          <div style={{ gridColumn: '1 / -1' }}>
+        <section>
+          <h2 className="font-display text-lg font-bold text-ejc-primary mb-3">
+            Cadastrados ({produtos?.length ?? 0})
+          </h2>
+
+          {produtos === null ? (
+            <div className="space-y-2">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <Skeleton key={i} className="h-20 w-full rounded-2xl" />
+              ))}
+            </div>
+          ) : produtos.length === 0 ? (
+            <EmptyState
+              icon={<PackagePlus size={26} />}
+              title="Nenhum produto cadastrado"
+              description="Use o formulário acima para adicionar o primeiro produto."
+            />
+          ) : (
+            <motion.ul layout className="space-y-2">
+              {produtos.map((p) => {
+                const stock = stockBadge(p.quantidade);
+                return (
+                  <motion.li
+                    key={p.id}
+                    layout
+                    initial={{ opacity: 0, y: 6 }}
+                    animate={{ opacity: 1, y: 0 }}
+                  >
+                    <Card className="flex items-center gap-3 p-3 hover:shadow-md transition-shadow">
+                      <div className="h-16 w-16 shrink-0 rounded-xl bg-ejc-bg overflow-hidden flex items-center justify-center">
+                        {p.imagem_url ? (
+                          <img
+                            src={p.imagem_url}
+                            alt={p.nome}
+                            loading="lazy"
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <ImageOff size={20} className="text-ejc-muted" />
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-semibold text-ejc-text leading-tight truncate">
+                          {p.nome}
+                        </p>
+                        <div className="flex items-center gap-2 flex-wrap mt-1">
+                          <Badge variant="primary">
+                            {CATEGORY_EMOJI[p.categoria]} {CATEGORY_LABELS[p.categoria]}
+                          </Badge>
+                          <Badge variant={stock.variant} dot>{stock.label}</Badge>
+                        </div>
+                      </div>
+                      <div className="text-right shrink-0">
+                        <p className="font-display text-lg font-extrabold text-ejc-primary tabular-nums">
+                          R$ {Number(p.preco).toFixed(2)}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-1 shrink-0">
+                        <button
+                          type="button"
+                          aria-label="Editar"
+                          onClick={() => abrirEdicao(p)}
+                          className="h-9 w-9 rounded-lg bg-ejc-bg text-ejc-primary flex items-center justify-center hover:bg-ejc-primary/10"
+                        >
+                          <Pencil size={15} />
+                        </button>
+                        <button
+                          type="button"
+                          aria-label="Excluir"
+                          onClick={() => deletar(p)}
+                          className="h-9 w-9 rounded-lg bg-ejc-red/10 text-ejc-red flex items-center justify-center hover:bg-ejc-red/15"
+                        >
+                          <Trash2 size={15} />
+                        </button>
+                      </div>
+                    </Card>
+                  </motion.li>
+                );
+              })}
+            </motion.ul>
+          )}
+        </section>
+      </main>
+
+      <Sheet
+        open={!!editing}
+        onClose={() => setEditing(null)}
+        side="right"
+        title={editing ? `Editar: ${editing.nome}` : "Editar produto"}
+        description="As alterações são salvas no botão abaixo."
+      >
+        {editing && (
+          <form onSubmit={salvarEdicao} className="p-5 flex flex-col gap-4">
             <ImageUploader
-              value={imagem}
-              onChange={setImagem}
+              value={editImage}
+              onChange={setEditImage}
+              existingUrl={editing.imagem_url}
               onError={(m) => toast.warning(m)}
             />
-          </div>
-          <input
-            placeholder="Nome"
-            value={novo.nome}
-            onChange={(e) => setNovo({ ...novo, nome: e.target.value })}
-          />
-          <input
-            type="number"
-            placeholder="Preço"
-            value={novo.preco}
-            onChange={(e) => setNovo({ ...novo, preco: e.target.value })}
-          />
-          <input
-            type="number"
-            placeholder="Estoque"
-            value={novo.quantidade}
-            onChange={(e) => setNovo({ ...novo, quantidade: e.target.value })}
-          />
-          <select
-            value={novo.categoria}
-            onChange={(e) => setNovo({ ...novo, categoria: e.target.value as Product['categoria'] })}
-          >
-            {PRODUCT_CATEGORIES.map(c => (
-              <option key={c} value={c}>{CATEGORY_EMOJI[c]} {CATEGORY_LABELS[c]}</option>
-            ))}
-          </select>
-          <button
-            className="btn-green"
-            onClick={criarProduto}
-            disabled={submitting}
-          >
-            {submitting ? 'Salvando...' : 'Adicionar'}
-          </button>
-        </div>
 
-        {produtos.map((p) => (
-          <div key={p.id} className="produto-edit-card">
-            {p.imagem_url && (
-              <div style={{ gridColumn: '1 / -1', display: 'flex', justifyContent: 'center' }}>
-                <img
-                  src={p.imagem_url}
-                  alt={p.nome}
-                  style={{
-                    height: 80,
-                    width: 80,
-                    objectFit: 'cover',
-                    borderRadius: 10,
-                    border: '1px solid var(--ejc-border)',
-                  }}
-                />
+            <Input
+              label="Nome"
+              value={editForm.nome}
+              onChange={(e) => setEditForm({ ...editForm, nome: e.target.value })}
+            />
+            <Input
+              label="Preço (R$)"
+              type="number"
+              step="0.01"
+              value={editForm.preco}
+              onChange={(e) => setEditForm({ ...editForm, preco: e.target.value })}
+            />
+            <Input
+              label="Estoque"
+              type="number"
+              value={editForm.quantidade}
+              onChange={(e) => setEditForm({ ...editForm, quantidade: e.target.value })}
+            />
+
+            <div className="flex flex-col gap-1.5">
+              <label className="text-[13px] font-medium text-ejc-text">Categoria</label>
+              <div className="grid grid-cols-2 gap-2">
+                {PRODUCT_CATEGORIES.map((c) => {
+                  const active = editForm.categoria === c;
+                  return (
+                    <button
+                      key={c}
+                      type="button"
+                      onClick={() => setEditForm({ ...editForm, categoria: c })}
+                      className={cn(
+                        "h-11 rounded-lg border text-sm font-medium inline-flex items-center justify-center gap-2 transition-colors",
+                        active
+                          ? "bg-ejc-primary text-white border-ejc-primary"
+                          : "bg-white text-ejc-text border-ejc-border hover:border-ejc-primary/40",
+                      )}
+                    >
+                      <span>{CATEGORY_EMOJI[c]}</span>
+                      {CATEGORY_LABELS[c]}
+                    </button>
+                  );
+                })}
               </div>
-            )}
-            <input
-              value={p.nome}
-              onChange={(e) => atualizar(p.id, 'nome', e.target.value)}
-            />
-            <input
-              type="number"
-              value={p.preco}
-              onChange={(e) => atualizar(p.id, 'preco', Number(e.target.value))}
-            />
-            <input
-              type="number"
-              value={p.quantidade}
-              onChange={(e) => atualizar(p.id, 'quantidade', Number(e.target.value))}
-            />
-            <select
-              value={p.categoria}
-              onChange={(e) => atualizar(p.id, 'categoria', e.target.value)}
-            >
-              {PRODUCT_CATEGORIES.map(c => (
-                <option key={c} value={c}>{CATEGORY_EMOJI[c]} {CATEGORY_LABELS[c]}</option>
-              ))}
-            </select>
-            <button className="btn-red" onClick={() => deletar(p)}>Excluir</button>
-          </div>
-        ))}
+            </div>
 
-        {produtos.length === 0 && (
-          <div className="empty-state">
-            <div className="empty-state__icon" aria-hidden="true">📦</div>
-            <h3>Nenhum produto cadastrado</h3>
-            <p>Use o formulário acima para adicionar o primeiro produto.</p>
-          </div>
+            <Button type="submit" size="lg" loading={savingEdit} fullWidth>
+              <Save size={16} /> Salvar alterações
+            </Button>
+          </form>
         )}
-
-      </div>
+      </Sheet>
     </div>
   );
 }

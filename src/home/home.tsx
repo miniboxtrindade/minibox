@@ -1,24 +1,37 @@
 import { useState, useEffect } from 'react';
-import './home.css';
+import { motion } from 'framer-motion';
+import { Search, UserPlus, Wallet, ArrowDownToLine, ArrowUpFromLine } from 'lucide-react';
 import Navbar from '../components/navbar';
 import { supabase, type Client } from '../lib/supabase';
-import { useModal } from '../lib/modal';
+import { useToast } from '../components/ui/toast';
+import {
+  Button,
+  Card,
+  CardBody,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  Input,
+} from '../components/ui';
 import { TransactionHistory } from './transaction-history';
+import { cn } from '../lib/cn';
+
+const QUICK_VALUES = [5, 10, 20, 50];
 
 const Home = () => {
-  const { notify } = useModal();
+  const toast = useToast();
 
   const [codigoBusca, setCodigoBusca] = useState('');
   const [cliente, setCliente] = useState<Client | null>(null);
   const [valor, setValor] = useState('');
   const [novoCodigo, setNovoCodigo] = useState('');
   const [novoNome, setNovoNome] = useState('');
+  const [busy, setBusy] = useState(false);
 
-  const definirValorRapido = (v: number) => setValor(String(v));
-
-  const buscarCliente = async () => {
+  const buscarCliente = async (e?: React.FormEvent) => {
+    e?.preventDefault();
     if (!codigoBusca) {
-      notify({ variant: 'warning', message: 'Digite o código do crachá.' });
+      toast.warning('Digite o código do crachá.');
       return;
     }
 
@@ -29,22 +42,19 @@ const Home = () => {
       .maybeSingle();
 
     if (error) {
-      notify({ variant: 'error', message: 'Erro ao buscar cliente.' });
+      toast.error('Erro ao buscar cliente.');
       return;
     }
     if (!data) {
-      notify({ variant: 'warning', message: 'Cliente não encontrado.' });
+      toast.warning('Cliente não encontrado.');
       setCliente(null);
       return;
     }
-
     setCliente(data as Client);
   };
 
-  // Realtime: atualiza saldo do cliente em tela ao detectar mudança
   useEffect(() => {
     if (!cliente) return;
-
     const channel = supabase
       .channel(`client-${cliente.id}`)
       .on(
@@ -53,149 +63,224 @@ const Home = () => {
         (payload) => setCliente(payload.new as Client),
       )
       .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
+    return () => { supabase.removeChannel(channel); };
   }, [cliente?.id]);
 
-  const recarregar = async () => {
+  const operar = async (tipo: 'RECARGA' | 'DEBITO') => {
     if (!cliente) return;
     if (!valor || Number(valor) <= 0) {
-      notify({ variant: 'warning', message: 'Digite um valor válido.' });
+      toast.warning('Digite um valor válido.');
       return;
     }
-
-    const { error } = await supabase.rpc('recarregar_saldo', {
+    setBusy(true);
+    const rpc = tipo === 'RECARGA' ? 'recarregar_saldo' : 'debitar_saldo';
+    const { error } = await supabase.rpc(rpc, {
       p_codigo: cliente.codigo,
       p_valor: Number(valor),
     });
+    setBusy(false);
 
     if (error) {
-      notify({ variant: 'error', message: error.message });
+      toast.error(error.message);
       return;
     }
     setValor('');
+    toast.success(tipo === 'RECARGA' ? 'Saldo recarregado!' : 'Saldo debitado.');
   };
 
-  const debitar = async () => {
-    if (!cliente) return;
-    if (!valor || Number(valor) <= 0) {
-      notify({ variant: 'warning', message: 'Digite um valor válido.' });
-      return;
-    }
-
-    const { error } = await supabase.rpc('debitar_saldo', {
-      p_codigo: cliente.codigo,
-      p_valor: Number(valor),
-    });
-
-    if (error) {
-      notify({ variant: 'error', message: error.message });
-      return;
-    }
-    setValor('');
-  };
-
-  const cadastrarCliente = async () => {
+  const cadastrarCliente = async (e: React.FormEvent) => {
+    e.preventDefault();
     if (!novoCodigo || !novoNome) {
-      notify({ variant: 'warning', message: 'Preencha os campos.' });
+      toast.warning('Preencha os campos.');
       return;
     }
-
+    setBusy(true);
     const { error } = await supabase
       .from('clients')
       .insert({ codigo: Number(novoCodigo), nome: novoNome });
+    setBusy(false);
 
     if (error) {
-      notify({ variant: 'error', message: error.message });
+      toast.error(error.message);
       return;
     }
-
-    notify({ variant: 'success', message: 'Cliente cadastrado com sucesso!' });
+    toast.success('Cliente cadastrado com sucesso!');
     setNovoCodigo('');
     setNovoNome('');
   };
 
+  const iniciais = cliente?.nome
+    ?.split(' ')
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((s) => s[0]?.toUpperCase())
+    .join('') ?? '?';
+
   return (
-    <div className="home-page">
-
+    <div className="min-h-screen bg-ejc-bg">
       <Navbar />
+      <main className="max-w-3xl mx-auto px-4 pt-[88px] pb-12 md:px-6 lg:pt-[100px]">
 
-      <div className="home-content">
+        <header className="mb-6">
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-ejc-blue">
+            Caixa
+          </p>
+          <h1 className="font-display text-2xl sm:text-3xl font-bold text-ejc-primary mt-1 tracking-tight">
+            Buscar cliente
+          </h1>
+          <p className="text-ejc-muted text-sm mt-1">
+            Informe o código do crachá para ver saldo, recarregar ou debitar.
+          </p>
+        </header>
 
-        <h2>Buscar Cliente</h2>
-
-        <div className="box">
-          <input
-            type="number"
-            inputMode="numeric"
-            placeholder="Código do crachá"
-            value={codigoBusca}
-            onChange={(e) => setCodigoBusca(e.target.value)}
-          />
-          <button onClick={buscarCliente}>Buscar</button>
-        </div>
+        <form onSubmit={buscarCliente} className="flex gap-2 mb-6">
+          <div className="flex-1">
+            <Input
+              type="number"
+              inputMode="numeric"
+              placeholder="Código do crachá"
+              value={codigoBusca}
+              onChange={(e) => setCodigoBusca(e.target.value)}
+              leftIcon={<Search size={16} />}
+            />
+          </div>
+          <Button type="submit" size="lg">Buscar</Button>
+        </form>
 
         {cliente && (
-          <>
-            <div className="cliente-card">
-              <h3>{cliente.nome}</h3>
+          <motion.div
+            key={cliente.id}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.2 }}
+            className="space-y-4 mb-6"
+          >
+            <Card className="overflow-hidden">
+              <div className="h-1 w-full bg-gradient-to-r from-ejc-yellow via-ejc-blue via-ejc-green to-ejc-red" />
+              <CardBody className="flex flex-col gap-4 sm:flex-row sm:items-center">
+                <div className="flex items-center gap-3 flex-1 min-w-0">
+                  <div className="h-14 w-14 shrink-0 rounded-full bg-ejc-primary/10 text-ejc-primary flex items-center justify-center font-display font-bold text-lg">
+                    {iniciais}
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-[12px] uppercase tracking-wide text-ejc-muted">
+                      Código #{cliente.codigo}
+                    </p>
+                    <h2 className="font-semibold text-ejc-text text-lg truncate">
+                      {cliente.nome}
+                    </h2>
+                  </div>
+                </div>
+                <div className="text-left sm:text-right">
+                  <p className="text-[12px] uppercase tracking-wide text-ejc-muted flex items-center gap-1 sm:justify-end">
+                    <Wallet size={12} /> Saldo
+                  </p>
+                  <p className="font-display text-3xl font-extrabold text-ejc-primary tabular-nums">
+                    R$ {Number(cliente.saldo).toFixed(2)}
+                  </p>
+                </div>
+              </CardBody>
+            </Card>
 
-              <p className="saldo">
-                Saldo: R$ {Number(cliente.saldo).toFixed(2)}
-              </p>
+            <Card>
+              <CardBody className="space-y-4">
+                <Input
+                  type="number"
+                  inputMode="decimal"
+                  step="0.01"
+                  label="Valor da operação"
+                  placeholder="0,00"
+                  value={valor}
+                  onChange={(e) => setValor(e.target.value)}
+                />
 
-              <input
-                type="number"
-                inputMode="decimal"
-                step="0.01"
-                placeholder="Digite o valor"
-                value={valor}
-                onChange={(e) => setValor(e.target.value)}
-              />
+                <div>
+                  <p className="text-[12px] uppercase tracking-wide text-ejc-muted mb-2">
+                    Valores rápidos
+                  </p>
+                  <div className="grid grid-cols-4 gap-2">
+                    {QUICK_VALUES.map((v) => {
+                      const active = valor === String(v);
+                      return (
+                        <button
+                          key={v}
+                          type="button"
+                          onClick={() => setValor(String(v))}
+                          className={cn(
+                            "h-11 rounded-lg font-semibold text-sm border transition-colors",
+                            active
+                              ? "bg-ejc-primary text-white border-ejc-primary"
+                              : "bg-white text-ejc-primary border-ejc-border hover:border-ejc-primary/50",
+                          )}
+                        >
+                          R$ {v}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
 
-              <div className="quick-values">
-                <button onClick={() => definirValorRapido(5)}>5</button>
-                <button onClick={() => definirValorRapido(10)}>10</button>
-                <button onClick={() => definirValorRapido(20)}>20</button>
-              </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
+                  <Button
+                    variant="success"
+                    size="lg"
+                    onClick={() => operar('RECARGA')}
+                    loading={busy}
+                  >
+                    <ArrowDownToLine size={16} /> Recarregar
+                  </Button>
+                  <Button
+                    variant="danger"
+                    size="lg"
+                    onClick={() => operar('DEBITO')}
+                    loading={busy}
+                  >
+                    <ArrowUpFromLine size={16} /> Debitar
+                  </Button>
+                </div>
+              </CardBody>
+            </Card>
 
-              <div className="actions">
-                <button className="btn-green" onClick={recarregar}>Recarregar</button>
-                <button className="btn-red" onClick={debitar}>Debitar</button>
-              </div>
-            </div>
-
-            <div style={{ marginBottom: 24 }}>
-              <TransactionHistory
-                clienteId={cliente.id}
-                clienteCodigo={cliente.codigo}
-              />
-            </div>
-          </>
+            <TransactionHistory
+              clienteId={cliente.id}
+              clienteCodigo={cliente.codigo}
+            />
+          </motion.div>
         )}
 
-        <h2>Cadastrar Novo Cliente</h2>
+        <Card className="mt-2">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <UserPlus size={18} /> Cadastrar novo cliente
+            </CardTitle>
+            <CardDescription>
+              Crie um novo crachá com saldo inicial zero.
+            </CardDescription>
+          </CardHeader>
+          <CardBody>
+            <form
+              onSubmit={cadastrarCliente}
+              className="grid grid-cols-1 sm:grid-cols-[140px_1fr_auto] gap-2"
+            >
+              <Input
+                type="number"
+                inputMode="numeric"
+                placeholder="Código"
+                value={novoCodigo}
+                onChange={(e) => setNovoCodigo(e.target.value)}
+              />
+              <Input
+                type="text"
+                placeholder="Nome completo"
+                value={novoNome}
+                onChange={(e) => setNovoNome(e.target.value)}
+              />
+              <Button type="submit" size="lg" loading={busy}>Cadastrar</Button>
+            </form>
+          </CardBody>
+        </Card>
 
-        <div className="box">
-          <input
-            type="number"
-            inputMode="numeric"
-            placeholder="Código"
-            value={novoCodigo}
-            onChange={(e) => setNovoCodigo(e.target.value)}
-          />
-          <input
-            type="text"
-            placeholder="Nome"
-            value={novoNome}
-            onChange={(e) => setNovoNome(e.target.value)}
-          />
-          <button onClick={cadastrarCliente}>Cadastrar</button>
-        </div>
-
-      </div>
+      </main>
     </div>
   );
 };
