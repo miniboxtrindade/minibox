@@ -38,6 +38,11 @@ const ACCENT: Record<StatCardProps["accent"], { bar: string; iconBg: string; ico
   primary: { bar: "from-ejc-primary to-ejc-primary/60", iconBg: "bg-ejc-primary/10", iconColor: "text-ejc-primary" },
 };
 
+function toNum(v: unknown): number {
+  const n = typeof v === "string" ? parseFloat(v) : Number(v);
+  return Number.isFinite(n) ? n : 0;
+}
+
 function AnimatedNumber({
   value,
   isCurrency,
@@ -48,16 +53,17 @@ function AnimatedNumber({
   const ref = useRef<HTMLSpanElement>(null);
   const inView = useInView(ref, { once: true, margin: "-50px" });
   const [display, setDisplay] = useState(0);
+  const safe = Number.isFinite(value) ? value : 0;
 
   useEffect(() => {
     if (!inView) return;
-    const controls = animate(0, value, {
+    const controls = animate(0, safe, {
       duration: 0.9,
       ease: "easeOut",
       onUpdate: (v) => setDisplay(v),
     });
     return () => controls.stop();
-  }, [inView, value]);
+  }, [inView, safe]);
 
   const formatted = isCurrency
     ? display.toLocaleString("pt-BR", {
@@ -165,7 +171,7 @@ const Dashboard = () => {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             <StatCard
               label="Total recarregado"
-              value={Number(dados.total_recarga)}
+              value={toNum(dados.total_recarga)}
               isCurrency
               icon={<ArrowDownToLine size={18} />}
               accent="green"
@@ -173,7 +179,7 @@ const Dashboard = () => {
             />
             <StatCard
               label="Total em vendas"
-              value={Number(dados.total_debito)}
+              value={toNum(dados.total_debito)}
               isCurrency
               icon={<ArrowUpFromLine size={18} />}
               accent="red"
@@ -181,7 +187,7 @@ const Dashboard = () => {
             />
             <StatCard
               label="Saldo dos clientes"
-              value={Number(dados.saldo_minibox)}
+              value={toNum(dados.saldo_minibox)}
               isCurrency
               icon={<Wallet size={18} />}
               accent="blue"
@@ -189,14 +195,14 @@ const Dashboard = () => {
             />
             <StatCard
               label="Clientes cadastrados"
-              value={Number(dados.clientes)}
+              value={toNum(dados.clientes)}
               icon={<Users size={18} />}
               accent="yellow"
               delay={0.15}
             />
             <StatCard
               label="Transações"
-              value={Number(dados.transacoes)}
+              value={toNum(dados.transacoes)}
               icon={<Activity size={18} />}
               accent="primary"
               delay={0.2}
@@ -219,7 +225,7 @@ const Dashboard = () => {
                   </div>
                   <p className="font-display text-3xl font-extrabold tabular-nums">
                     <AnimatedNumber
-                      value={Number(dados.total_debito) - Number(dados.total_recarga) + Number(dados.saldo_minibox)}
+                      value={toNum(dados.total_debito) - toNum(dados.total_recarga) + toNum(dados.saldo_minibox)}
                       isCurrency
                     />
                   </p>

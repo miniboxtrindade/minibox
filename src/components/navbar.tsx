@@ -63,7 +63,7 @@ export default function Navbar() {
   return (
     <>
       <nav className="fixed top-0 inset-x-0 z-[1000] bg-ejc-primary text-white border-b border-white/10 shadow-lg shadow-ejc-primary/20">
-        <div className="relative max-w-7xl w-full mx-auto px-4 sm:px-6 h-16 lg:h-[72px] flex items-center gap-3">
+        <div className="max-w-7xl w-full mx-auto px-4 sm:px-6 h-16 lg:h-[72px] grid items-center gap-3 grid-cols-[auto_1fr_auto]">
 
           <button
             type="button"
@@ -78,7 +78,7 @@ export default function Navbar() {
             </span>
           </button>
 
-          <div className="hidden lg:flex items-center gap-1 absolute left-1/2 -translate-x-1/2">
+          <div className="hidden lg:flex items-center justify-center gap-1">
             {items.map((item) => {
               const Icon = item.icon;
               return (
@@ -87,10 +87,10 @@ export default function Navbar() {
                   to={item.path}
                   className={({ isActive }) =>
                     cn(
-                      "relative inline-flex items-center gap-2 px-3 h-10 rounded-lg text-sm font-medium transition-colors",
+                      "relative inline-flex items-center gap-2 px-3 h-10 rounded-lg text-sm font-medium transition-colors whitespace-nowrap",
                       isActive
-                        ? "text-white bg-white/12"
-                        : "text-white/85 hover:text-white hover:bg-white/8",
+                        ? "text-white bg-white/15"
+                        : "text-white hover:bg-white/10",
                     )
                   }
                 >
@@ -112,14 +112,14 @@ export default function Navbar() {
             })}
           </div>
 
-          <div className="hidden lg:flex items-center gap-3 ml-auto">
+          <div className="hidden lg:flex items-center gap-3 justify-end">
             <div className="flex items-center gap-2 text-white">
-              <div className="h-8 w-8 rounded-full bg-white/15 flex items-center justify-center font-bold text-[12px] text-white">
+              <div className="h-9 w-9 rounded-full bg-white/15 flex items-center justify-center font-bold text-[12px] text-white">
                 {iniciais}
               </div>
               <div className="leading-tight">
-                <p className="text-[12px] font-medium text-white">{profile?.nome ?? "—"}</p>
-                <p className="text-[10px] uppercase tracking-wide text-white/70">
+                <p className="text-[12px] font-semibold text-white">{profile?.nome ?? "—"}</p>
+                <p className="text-[10px] uppercase tracking-wide text-white/75">
                   {profile?.role ?? "—"}
                 </p>
               </div>
@@ -138,7 +138,7 @@ export default function Navbar() {
             onClick={() => setMenuOpen((v) => !v)}
             aria-label={menuOpen ? "Fechar menu" : "Abrir menu"}
             aria-expanded={menuOpen}
-            className="lg:hidden ml-auto h-10 w-10 rounded-lg text-white inline-flex items-center justify-center hover:bg-white/12 transition-colors"
+            className="lg:hidden col-start-3 justify-self-end h-10 w-10 rounded-lg text-white inline-flex items-center justify-center hover:bg-white/15 transition-colors"
           >
             {menuOpen ? <X size={22} /> : <Menu size={22} />}
           </button>
