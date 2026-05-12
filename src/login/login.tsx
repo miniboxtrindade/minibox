@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Mail, Lock, ArrowRight } from 'lucide-react';
+import { Mail, Lock, ArrowRight, Eye, EyeOff } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useToast } from '../components/ui/toast';
 import { Button, Input } from '../components/ui';
@@ -13,6 +13,7 @@ export default function Login() {
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
 
@@ -78,7 +79,7 @@ export default function Login() {
             />
             <Input
               label="Senha"
-              type="password"
+              type={showPassword ? 'text' : 'password'}
               autoComplete="current-password"
               placeholder="••••••••"
               value={password}
@@ -86,6 +87,16 @@ export default function Login() {
               leftIcon={<Lock size={16} />}
               error={errors.password}
               required
+              rightSlot={
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((v) => !v)}
+                  aria-label={showPassword ? 'Ocultar senha' : 'Mostrar senha'}
+                  className="h-8 w-8 flex items-center justify-center text-ejc-muted hover:text-ejc-primary transition-colors rounded"
+                >
+                  {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                </button>
+              }
             />
 
             <Button

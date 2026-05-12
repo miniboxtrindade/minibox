@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { ShieldCheck, UserCog, UsersRound } from "lucide-react";
+import { ShieldCheck, UserCog, UsersRound, KeyRound } from "lucide-react";
 import Navbar from "../components/navbar";
 import { supabase, type Profile, type UserRole } from "../lib/supabase";
 import { useAuth } from "../lib/auth";
@@ -23,6 +23,7 @@ export default function Usuarios() {
 
   const [usuarios, setUsuarios] = useState<Profile[] | null>(null);
   const [working, setWorking] = useState<string | null>(null);
+  const [sendingReset, setSendingReset] = useState<string | null>(null);
 
   const buscar = async () => {
     const { data, error } = await supabase
@@ -81,6 +82,32 @@ export default function Usuarios() {
     toast.success(
       role === "admin" ? "Usuário promovido a admin!" : "Usuário rebaixado a caixa.",
     );
+  };
+
+  const resetarSenha = async (u: Profile) => {
+    if (!u.email) {
+      toast.warning("E-mail deste usuário não está disponível.");
+      return;
+    }
+    const ok = await confirm({
+      variant: "info",
+      title: "Enviar reset de senha",
+      message: `Enviar um link de redefinição de senha para ${u.email}? O usuário poderá clicar no link recebido por e-mail e escolher uma nova senha.`,
+      confirmLabel: "Enviar link",
+    });
+    if (!ok) return;
+
+    setSendingReset(u.id);
+    const { error } = await supabase.auth.resetPasswordForEmail(u.email, {
+      redirectTo: `${window.location.origin}/login`,
+    });
+    setSendingReset(null);
+
+    if (error) {
+      toast.error(friendlyError(error));
+      return;
+    }
+    toast.success(`Link de reset enviado para ${u.email}.`);
   };
 
   const iniciaisDe = (nome: string | null) =>
@@ -162,7 +189,17 @@ export default function Usuarios() {
                         </div>
                       </div>
 
-                      <div className="ml-auto flex gap-2">
+                      <div className="ml-auto flex gap-2 flex-wrap justify-end">
+                        <Button
+                          variant="secondary"
+                          size="sm"
+                          loading={sendingReset === u.id}
+                          onClick={() => resetarSenha(u)}
+                          disabled={!u.email}
+                          title={u.email ? `Enviar link para ${u.email}` : "Sem e-mail cadastrado"}
+                        >
+                          <KeyRound size={14} /> Resetar senha
+                        </Button>
                         {isAdmin ? (
                           <Button
                             variant="outline"
@@ -180,7 +217,7 @@ export default function Usuarios() {
                             loading={isBusy}
                             onClick={() => setRole(u, "admin")}
                           >
-                            <ShieldCheck size={14} /> Promover a admin
+                            <ShieldCheck size={14} /> Promover
                           </Button>
                         )}
                       </div>
