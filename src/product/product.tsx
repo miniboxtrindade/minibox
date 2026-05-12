@@ -346,7 +346,7 @@ export default function ProductPage() {
                   </div>
 
                   {showNewCategory && (
-                    <div className="mt-2 grid grid-cols-[80px_1fr_auto] gap-2 items-end p-3 bg-ejc-bg rounded-lg border border-ejc-border">
+                    <div className="mt-2 grid gap-2 items-end p-3 bg-ejc-bg rounded-lg border border-ejc-border grid-cols-[80px_1fr] sm:grid-cols-[80px_1fr_auto]">
                       <Input
                         label="Emoji"
                         value={newCategoryEmoji}
@@ -366,6 +366,7 @@ export default function ProductPage() {
                         variant="success"
                         onClick={criarCategoria}
                         loading={creatingCategory}
+                        className="col-span-2 sm:col-span-1"
                       >
                         Criar
                       </Button>
