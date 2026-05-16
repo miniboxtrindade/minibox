@@ -78,7 +78,9 @@ export function PrivateRoute({
   const { session, profile, loading } = useAuth();
   const location = useLocation();
 
-  if (loading) return <p style={{ padding: 40 }}>Carregando...</p>;
+  if (loading || (session && !profile)) {
+    return <p style={{ padding: 40 }}>Carregando...</p>;
+  }
   if (!session) return <Navigate to="/login" replace state={{ from: location }} />;
   if (requireRole && profile?.role !== requireRole) {
     return <Navigate to="/home" replace />;

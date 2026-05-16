@@ -30,3 +30,9 @@ dist-ssr
 # Supabase
 supabase/.temp/
 supabase/.branches/
+
+# Test artifacts
+playwright-report/
+test-results/
+tests/.auth/
+coverage/

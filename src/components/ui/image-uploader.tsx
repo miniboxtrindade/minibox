@@ -164,7 +164,7 @@ export function ImageUploader({
         accept={accept}
         onChange={onPick}
         className="sr-only"
-        aria-hidden
+        tabIndex={-1}
       />
     </div>
   );
