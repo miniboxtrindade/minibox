@@ -1,6 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { motion } from "framer-motion";
-import { PackagePlus, Pencil, Trash2, ImageOff, Save, Plus } from "lucide-react";
+import { PackagePlus, Pencil, Trash2, ImageOff, Save, Plus, Search } from "lucide-react";
 import Navbar from "../components/navbar";
 import {
   supabase,
@@ -75,6 +75,27 @@ export default function ProductPage() {
   const [newCategoryLabel, setNewCategoryLabel] = useState("");
   const [newCategoryEmoji, setNewCategoryEmoji] = useState("📦");
   const [creatingCategory, setCreatingCategory] = useState(false);
+
+  const [busca, setBusca] = useState("");
+  const [filtroCat, setFiltroCat] = useState<string>("ALL");
+
+  const filtros = useMemo(() => {
+    const list: { key: string; label: string; emoji: string }[] = [
+      { key: "ALL", label: "Todos", emoji: "✨" },
+    ];
+    (categories ?? []).forEach((c) =>
+      list.push({ key: c.key, label: c.label, emoji: c.emoji }),
+    );
+    return list;
+  }, [categories]);
+
+  const produtosVisiveis = useMemo(() => {
+    if (!produtos) return null;
+    const q = busca.trim().toLowerCase();
+    return produtos
+      .filter((p) => (filtroCat === "ALL" ? true : p.categoria === filtroCat))
+      .filter((p) => (q ? p.nome.toLowerCase().includes(q) : true));
+  }, [produtos, busca, filtroCat]);
 
   const buscar = async () => {
     const { data, error } = await supabase
@@ -389,25 +410,75 @@ export default function ProductPage() {
         </Card>
 
         <section>
-          <h2 className="font-display text-lg font-bold text-ejc-primary mb-3">
-            Cadastrados ({produtos?.length ?? 0})
-          </h2>
+          <div className="flex items-baseline justify-between gap-3 mb-3 flex-wrap">
+            <h2 className="font-display text-lg font-bold text-ejc-primary">
+              Cadastrados ({produtosVisiveis?.length ?? 0}
+              {produtos && produtosVisiveis && produtosVisiveis.length !== produtos.length && (
+                <span className="text-ejc-muted font-normal"> de {produtos.length}</span>
+              )}
+              )
+            </h2>
+          </div>
 
-          {produtos === null ? (
+          <div className="mb-3">
+            <Input
+              placeholder="Buscar produto pelo nome..."
+              value={busca}
+              onChange={(e) => setBusca(e.target.value)}
+              leftIcon={<Search size={16} />}
+              aria-label="Buscar produto"
+            />
+          </div>
+
+          <nav
+            className="flex gap-2 overflow-x-auto pb-3 mb-2 -mx-4 px-4 md:mx-0 md:px-0"
+            aria-label="Filtrar por categoria"
+          >
+            {filtros.map((f) => {
+              const active = filtroCat === f.key;
+              return (
+                <button
+                  key={f.key}
+                  type="button"
+                  onClick={() => setFiltroCat(f.key)}
+                  aria-pressed={active}
+                  className={cn(
+                    "shrink-0 inline-flex items-center gap-1.5 h-9 px-3.5 rounded-full text-sm font-medium border transition-all",
+                    active
+                      ? "bg-ejc-primary text-white border-ejc-primary shadow-sm"
+                      : "bg-white text-ejc-text border-ejc-border hover:border-ejc-primary/40 hover:text-ejc-primary",
+                  )}
+                >
+                  <span aria-hidden>{f.emoji}</span>
+                  {f.label}
+                </button>
+              );
+            })}
+          </nav>
+
+          {produtosVisiveis === null ? (
             <div className="space-y-2">
               {Array.from({ length: 4 }).map((_, i) => (
                 <Skeleton key={i} className="h-20 w-full rounded-2xl" />
               ))}
             </div>
-          ) : produtos.length === 0 ? (
+          ) : produtosVisiveis.length === 0 ? (
             <EmptyState
               icon={<PackagePlus size={26} />}
-              title="Nenhum produto cadastrado"
-              description="Use o formulário acima para adicionar o primeiro produto."
+              title={
+                produtos && produtos.length === 0
+                  ? "Nenhum produto cadastrado"
+                  : "Nenhum produto encontrado"
+              }
+              description={
+                produtos && produtos.length === 0
+                  ? "Use o formulário acima para adicionar o primeiro produto."
+                  : "Tente outro termo de busca ou outra categoria."
+              }
             />
           ) : (
             <motion.ul layout className="space-y-2">
-              {produtos.map((p) => {
+              {produtosVisiveis.map((p) => {
                 const stock = stockBadge(p.quantidade);
                 return (
                   <motion.li
