@@ -64,7 +64,9 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
             hasError ? `${inputId}-error` : hint ? `${inputId}-hint` : undefined
           }
           className={cn(
-            "flex-1 bg-transparent outline-none text-base sm:text-[15px] text-ejc-text placeholder:text-ejc-muted",
+            // min-w-0 evita que o intrinsic min-content do <input> (especialmente
+            // type=number) expanda o wrapper, sobrepondo elementos vizinhos.
+            "flex-1 min-w-0 bg-transparent outline-none text-base sm:text-[15px] text-ejc-text placeholder:text-ejc-muted",
             "px-3 py-3 min-h-11 disabled:opacity-60 disabled:cursor-not-allowed",
             leftIcon && "pl-2",
             rightSlot && "pr-2",
