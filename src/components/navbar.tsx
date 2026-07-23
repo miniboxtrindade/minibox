@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate, NavLink } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import {
@@ -16,6 +16,7 @@ import { useAuth } from "../lib/auth";
 import { cn } from "../lib/cn";
 import { PacmanIcon } from "./ui/pacman-icon";
 import { GameboxWordmark } from "./ui/gamebox-wordmark";
+import { HeaderChase } from "./header-chase";
 
 interface NavItem {
   path: string;
@@ -38,6 +39,11 @@ export default function Navbar() {
   const location = useLocation();
   const { profile, signOut } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
+
+  const rowRef = useRef<HTMLDivElement>(null);
+  const logoRef = useRef<HTMLButtonElement>(null);
+  const homeLinkRef = useRef<HTMLAnchorElement>(null);
+  const menuButtonRef = useRef<HTMLButtonElement>(null);
 
   const isAdmin = profile?.role === "admin";
   const items = ITEMS.filter((i) => !i.admin || isAdmin);
@@ -67,18 +73,27 @@ export default function Navbar() {
   return (
     <>
       <nav className="fixed top-0 inset-x-0 z-[1000] bg-ejc-primary text-white border-b border-white/10 shadow-lg shadow-ejc-primary/20">
-        <div className="max-w-7xl w-full mx-auto px-4 sm:px-6 h-16 lg:h-[72px] grid items-center gap-3 grid-cols-[auto_1fr_auto]">
+        <div
+          ref={rowRef}
+          className="relative max-w-7xl w-full mx-auto px-4 sm:px-6 h-16 lg:h-[72px] grid items-center gap-3 grid-cols-[auto_1fr_auto]"
+        >
+          <HeaderChase
+            containerRef={rowRef}
+            logoRef={logoRef}
+            homeRef={homeLinkRef}
+            menuButtonRef={menuButtonRef}
+          />
 
           <button
+            ref={logoRef}
             type="button"
             onClick={() => navigate("/home")}
-            className="flex items-center gap-2.5 shrink-0 text-white"
+            className="relative z-10 flex items-center gap-2.5 shrink-0 text-white"
           >
             <span className="h-9 w-9 sm:h-10 sm:w-10 rounded-lg bg-white flex items-center justify-center overflow-hidden ring-1 ring-white/30 border-2 border-black shrink-0">
               <PacmanIcon size={22} />
             </span>
-            <GameboxWordmark size="xs" />
-            <span className="sr-only">Gamebox</span>
+            <GameboxWordmark className="h-8 sm:h-9" />
           </button>
 
           <div className="hidden lg:flex items-center justify-center gap-1">
@@ -87,6 +102,7 @@ export default function Navbar() {
               return (
                 <NavLink
                   key={item.path}
+                  ref={item.path === "/home" ? homeLinkRef : undefined}
                   to={item.path}
                   className={({ isActive }) =>
                     cn(
@@ -137,11 +153,12 @@ export default function Navbar() {
           </div>
 
           <button
+            ref={menuButtonRef}
             type="button"
             onClick={() => setMenuOpen((v) => !v)}
             aria-label={menuOpen ? "Fechar menu" : "Abrir menu"}
             aria-expanded={menuOpen}
-            className="lg:hidden col-start-3 justify-self-end h-10 w-10 rounded-lg text-white inline-flex items-center justify-center hover:bg-white/15 transition-colors"
+            className="relative z-10 lg:hidden col-start-3 justify-self-end h-10 w-10 rounded-lg text-white inline-flex items-center justify-center hover:bg-white/15 transition-colors"
           >
             {menuOpen ? <X size={22} /> : <Menu size={22} />}
           </button>

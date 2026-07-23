@@ -3,21 +3,19 @@ import { cn } from "../../lib/cn";
 interface PacmanIconProps {
   size?: number;
   className?: string;
-  color?: string;
 }
 
-export function PacmanIcon({ size = 24, className, color = "#FFD400" }: PacmanIconProps) {
+// Recorte exato do Pac-Man em /public/logo-minibox.jpeg (fundo removido).
+export function PacmanIcon({ size = 24, className }: PacmanIconProps) {
   return (
-    <svg
-      viewBox="0 0 32 32"
+    <img
+      src="/pacman.png"
+      alt=""
       width={size}
       height={size}
-      className={className}
-      aria-hidden
-    >
-      <path d="M16 16 L28.99 8.5 A15 15 0 1 0 28.99 23.5 Z" fill={color} />
-      <circle cx="19" cy="9.5" r="1.9" fill="#1B1B2A" />
-    </svg>
+      draggable={false}
+      className={cn("select-none object-contain", className)}
+    />
   );
 }
 

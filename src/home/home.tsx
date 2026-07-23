@@ -374,7 +374,7 @@ export default function Home() {
                       exit={{ opacity: 0, scale: 0.97 }}
                       transition={{ duration: 0.18 }}
                     >
-                      <Card className="flex items-center gap-3 p-3 hover:shadow-md transition-shadow">
+                      <Card className="flex items-center gap-3 p-3 shadow-none hover:shadow-none">
                         <div className="h-14 w-14 shrink-0 rounded-lg bg-ejc-bg overflow-hidden flex items-center justify-center">
                           {p.imagem_url ? (
                             <img

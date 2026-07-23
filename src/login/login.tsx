@@ -141,7 +141,7 @@ export default function Login() {
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.5, delay: 0.15 }}
           >
-            <GameboxWordmark size="lg" withMascots />
+            <GameboxWordmark withMascots className="max-w-[300px] w-full" />
           </motion.div>
           <p className="absolute bottom-8 left-8 right-8 text-white/70 text-xs tracking-wide leading-relaxed text-center">
             Encontro de Jovens com Cristo — Trindade.

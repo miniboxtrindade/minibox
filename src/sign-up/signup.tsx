@@ -78,7 +78,7 @@ export default function SignUp() {
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.5, delay: 0.15 }}
           >
-            <GameboxWordmark size="md" withMascots />
+            <GameboxWordmark withMascots className="max-w-[260px] w-full" />
           </motion.div>
           <div className="mt-8 text-white text-center">
             <p className="text-white/60 text-xs tracking-[0.18em] uppercase">Já é cadastrado?</p>
