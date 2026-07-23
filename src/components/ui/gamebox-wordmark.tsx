@@ -19,9 +19,10 @@ const OUTLINE_SHADOW =
   "-1px -1px 0 #0A0A0A, 1px -1px 0 #0A0A0A, -1px 1px 0 #0A0A0A, 1px 1px 0 #0A0A0A, 2px 2px 0 #0A0A0A";
 
 const SIZES = {
-  sm: { text: "text-2xl", stroke: "1px" },
-  md: { text: "text-4xl", stroke: "1.5px" },
-  lg: { text: "text-6xl", stroke: "2.5px" },
+  xs: { text: "text-[11px]", stroke: "0.6px", gap: "mt-[1px]" },
+  sm: { text: "text-2xl", stroke: "1px", gap: "mt-1" },
+  md: { text: "text-4xl", stroke: "1.5px", gap: "mt-1" },
+  lg: { text: "text-6xl", stroke: "2.5px", gap: "mt-1" },
 } as const;
 
 interface GameboxWordmarkProps {
@@ -45,8 +46,8 @@ function Letter({ ch, color, stroke }: { ch: string; color: string; stroke: stri
 }
 
 export function GameboxWordmark({ size = "md", withMascots = false, className }: GameboxWordmarkProps) {
-  const { text, stroke } = SIZES[size];
-  const mascotSize = size === "lg" ? 28 : size === "md" ? 22 : 16;
+  const { text, stroke, gap } = SIZES[size];
+  const mascotSize = size === "lg" ? 28 : size === "md" ? 22 : size === "sm" ? 16 : 10;
 
   return (
     <div className={cn("select-none", className)}>
@@ -67,7 +68,7 @@ export function GameboxWordmark({ size = "md", withMascots = false, className }:
             <Letter key={i} {...l} stroke={stroke} />
           ))}
         </div>
-        <div className="flex justify-center gap-[2px] mt-1">
+        <div className={cn("flex justify-center gap-[2px]", gap)}>
           {ROW_2.map((l, i) => (
             <Letter key={i} {...l} stroke={stroke} />
           ))}

@@ -56,7 +56,7 @@ export default function Login() {
       >
         <div className="px-6 sm:px-10 py-10 sm:py-12 flex flex-col justify-center">
           <p className="font-pixel-mono text-sm font-semibold tracking-[0.18em] uppercase text-ejc-blue">
-            Minibox · GAMEBOX 2026
+            Gamebox EJC · 2026
           </p>
           <h1 className="font-display text-3xl sm:text-4xl font-bold text-ejc-primary mt-2 leading-tight tracking-tight">
             Bem-vindo de volta

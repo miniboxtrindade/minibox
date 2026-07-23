@@ -15,6 +15,7 @@ import {
 import { useAuth } from "../lib/auth";
 import { cn } from "../lib/cn";
 import { PacmanIcon } from "./ui/pacman-icon";
+import { GameboxWordmark } from "./ui/gamebox-wordmark";
 
 interface NavItem {
   path: string;
@@ -73,12 +74,11 @@ export default function Navbar() {
             onClick={() => navigate("/home")}
             className="flex items-center gap-2.5 shrink-0 text-white"
           >
-            <span className="h-9 w-9 sm:h-10 sm:w-10 rounded-lg bg-white flex items-center justify-center overflow-hidden ring-1 ring-white/30 border-2 border-black">
+            <span className="h-9 w-9 sm:h-10 sm:w-10 rounded-lg bg-white flex items-center justify-center overflow-hidden ring-1 ring-white/30 border-2 border-black shrink-0">
               <PacmanIcon size={22} />
             </span>
-            <span className="font-display font-bold text-[15px] sm:text-[16px] tracking-tight text-white whitespace-nowrap">
-              Minibox <span className="text-ejc-yellow">GAMEBOX</span>
-            </span>
+            <GameboxWordmark size="xs" />
+            <span className="sr-only">Gamebox</span>
           </button>
 
           <div className="hidden lg:flex items-center justify-center gap-1">

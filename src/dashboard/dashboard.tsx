@@ -373,7 +373,7 @@ const Dashboard = () => {
           <div>
             <PageHeading kicker="Painel administrativo" title="Visão geral" />
             <p className="text-ejc-muted text-sm mt-1">
-              Indicadores do minibox atualizados em tempo real.
+              Indicadores do gamebox atualizados em tempo real.
             </p>
           </div>
           <Button
@@ -412,7 +412,7 @@ const Dashboard = () => {
                 <div className="p-5 flex flex-col h-full justify-between min-h-[140px]">
                   <div className="flex items-center justify-between">
                     <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-white/60">
-                      Caixa do minibox
+                      Caixa do gamebox
                     </p>
                     <span className="h-9 w-9 rounded-lg bg-white/10 flex items-center justify-center">
                       <TrendingUp size={18} />
