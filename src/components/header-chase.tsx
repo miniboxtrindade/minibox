@@ -3,8 +3,12 @@ import { motion, useReducedMotion } from "framer-motion";
 import { PacmanIcon } from "./ui/pacman-icon";
 import { GhostIcon, GHOST_COLORS } from "./ui/ghost-icon";
 
-const CHASE_GHOSTS = [GHOST_COLORS[2], GHOST_COLORS[0], GHOST_COLORS[1]];
-const GHOST_Y_JITTER = [-4, 3, -2];
+// Os 6 fantasmas da logo, na mesma ordem em que aparecem nela.
+const CHASE_GHOSTS = GHOST_COLORS;
+// Atraso do primeiro fantasma (mantém distância visível do Pac-Man) +
+// incremento entre eles (mantém o grupo coeso, sem esticar pelo header todo).
+const GHOST_GAP = 0.6;
+const GHOST_STEP = 0.15;
 
 interface Path {
   start: number;
@@ -107,27 +111,18 @@ function Chase({ path, duration, pauseAfter, ghostColors, dotCount }: ChaseProps
 
       {ghostColors.map((color, i) => {
         const fade = fadeKeyframes(0.82);
+        const delay = GHOST_GAP + GHOST_STEP * i;
         return (
           <motion.div
             key={color}
-            className="absolute top-1/2"
-            style={{ y: GHOST_Y_JITTER[i % GHOST_Y_JITTER.length] }}
+            className="absolute top-1/2 -translate-y-1/2"
             animate={{ x: [path.start, path.end], opacity: fade.values }}
             transition={{
-              x: { duration, delay: 0.18 * (i + 1), repeat: Infinity, repeatDelay: pauseAfter, ease: "linear" },
-              opacity: {
-                duration,
-                delay: 0.18 * (i + 1),
-                times: fade.times,
-                repeat: Infinity,
-                repeatDelay: pauseAfter,
-                ease: "linear",
-              },
+              x: { duration, delay, repeat: Infinity, repeatDelay: pauseAfter, ease: "linear" },
+              opacity: { duration, delay, times: fade.times, repeat: Infinity, repeatDelay: pauseAfter, ease: "linear" },
             }}
           >
-            <div className="-translate-y-1/2">
-              <GhostIcon size={18} color={color} />
-            </div>
+            <GhostIcon size={18} color={color} />
           </motion.div>
         );
       })}
@@ -176,7 +171,7 @@ export function HeaderChase({ containerRef, logoRef, startRef, mobileStartRef }:
           className="hidden lg:block absolute inset-y-0 left-0 right-0 overflow-hidden pointer-events-none"
           aria-hidden
         >
-          <Chase path={desktopPath} duration={3.2} pauseAfter={8} ghostColors={CHASE_GHOSTS} dotCount={0} />
+          <Chase path={desktopPath} duration={5.5} pauseAfter={6.5} ghostColors={CHASE_GHOSTS} dotCount={0} />
         </div>
       )}
       {mobilePath && (
@@ -184,7 +179,7 @@ export function HeaderChase({ containerRef, logoRef, startRef, mobileStartRef }:
           className="lg:hidden absolute inset-y-0 left-0 right-0 overflow-hidden pointer-events-none"
           aria-hidden
         >
-          <Chase path={mobilePath} duration={2.8} pauseAfter={8.5} ghostColors={CHASE_GHOSTS} dotCount={9} />
+          <Chase path={mobilePath} duration={3.8} pauseAfter={7.5} ghostColors={CHASE_GHOSTS} dotCount={9} />
         </div>
       )}
     </>
