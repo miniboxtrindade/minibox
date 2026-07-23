@@ -96,7 +96,7 @@ export default function Navbar() {
             <GameboxWordmark className="h-8 sm:h-9" />
           </button>
 
-          <div className="hidden lg:flex items-center justify-center gap-1">
+          <div className="relative z-10 hidden lg:flex items-center justify-center gap-1">
             {items.map((item) => {
               const Icon = item.icon;
               return (
@@ -130,7 +130,7 @@ export default function Navbar() {
             })}
           </div>
 
-          <div className="hidden lg:flex items-center gap-3 justify-end">
+          <div className="relative z-10 hidden lg:flex items-center gap-3 justify-end">
             <div className="flex items-center gap-2 text-white">
               <div
                 ref={userChipRef}
