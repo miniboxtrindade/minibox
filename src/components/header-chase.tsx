@@ -151,7 +151,12 @@ function Chase({ path, ghostColors, dotCount }: ChaseProps) {
           <motion.span
             key={`${cycle}-${i}`}
             className={cn("absolute top-1/2 rounded-full", DOT_COLOR_CLASS)}
-            style={{ left: d.x, width: DOT_SIZE, height: DOT_SIZE, marginTop: -DOT_SIZE / 2 }}
+            style={{
+              left: d.x - DOT_SIZE / 2,
+              width: DOT_SIZE,
+              height: DOT_SIZE,
+              marginTop: -DOT_SIZE / 2,
+            }}
             initial={{ opacity: 0, scale: 0.5 }}
             animate={{ opacity: dt.opacity, scale: dt.scale }}
             transition={{ duration, times: dt.times, ease: "linear" }}
@@ -164,7 +169,13 @@ function Chase({ path, ghostColors, dotCount }: ChaseProps) {
         return (
           <motion.div
             key={`${cycle}-${color}`}
-            className="absolute top-1/2 -translate-y-1/2"
+            className="absolute"
+            // `left`/`marginTop` fixam o centro do ícone na origem (0,0) local;
+            // o `x` do Framer (translateX) então desloca esse centro para a
+            // posição real. Não usar utilitário `-translate-x/y-1/2` aqui: o
+            // Framer assume o controle total de `transform` assim que `x` é
+            // animado, e sobrescreveria uma classe de transform estática.
+            style={{ top: "50%", left: -GHOST_SIZE / 2, marginTop: -GHOST_SIZE / 2 }}
             initial={{ x: from, opacity: 0 }}
             animate={{ x: ghostTimeline.x, opacity: ghostTimeline.opacity }}
             transition={{ duration, delay, times: ghostTimeline.times, ease: "linear" }}
@@ -176,7 +187,8 @@ function Chase({ path, ghostColors, dotCount }: ChaseProps) {
 
       <motion.div
         key={`${cycle}-pacman`}
-        className="absolute top-1/2 -translate-y-1/2"
+        className="absolute"
+        style={{ top: "50%", left: -PACMAN_SIZE / 2, marginTop: -PACMAN_SIZE / 2 }}
         initial={{ x: from, opacity: 0, scale: 1 }}
         animate={{ x: mainTimeline.x, opacity: mainTimeline.opacity, scale: mainTimeline.scale }}
         transition={{ duration, times: mainTimeline.times, ease: "linear" }}
