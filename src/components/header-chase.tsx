@@ -5,10 +5,10 @@ import { GhostIcon, GHOST_COLORS } from "./ui/ghost-icon";
 
 // Os 6 fantasmas da logo, na mesma ordem em que aparecem nela.
 const CHASE_GHOSTS = GHOST_COLORS;
-// Atraso do primeiro fantasma (mantém distância visível do Pac-Man) +
-// incremento entre eles (mantém o grupo coeso, sem esticar pelo header todo).
-const GHOST_GAP = 0.6;
-const GHOST_STEP = 0.15;
+// Espaçamento em pixels (não em segundos) — assim o espaço visual entre eles
+// não muda quando a velocidade da travessia é ajustada.
+const GHOST_GAP_PX = 30; // distância do Pac-Man até o primeiro fantasma
+const GHOST_STEP_PX = 26; // espaço entre um fantasma e o próximo
 
 interface Path {
   start: number;
@@ -83,6 +83,7 @@ interface ChaseProps {
 
 function Chase({ path, duration, pauseAfter, ghostColors, dotCount }: ChaseProps) {
   const distance = path.end - path.start;
+  const speed = Math.abs(distance) / duration; // px/s
   const dots = Array.from({ length: dotCount }, (_, i) => {
     const frac = (i + 1) / (dotCount + 1);
     return { x: path.start + distance * frac, frac };
@@ -111,7 +112,7 @@ function Chase({ path, duration, pauseAfter, ghostColors, dotCount }: ChaseProps
 
       {ghostColors.map((color, i) => {
         const fade = fadeKeyframes(0.82);
-        const delay = GHOST_GAP + GHOST_STEP * i;
+        const delay = (GHOST_GAP_PX + GHOST_STEP_PX * i) / speed;
         return (
           <motion.div
             key={color}
