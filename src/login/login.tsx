@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 import { Mail, Lock, ArrowRight, Eye, EyeOff } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useToast } from '../components/ui/toast';
-import { Button, Input } from '../components/ui';
+import { Button, Input, GameboxWordmark } from '../components/ui';
 import { friendlyError } from '../lib/errors';
 
 export default function Login() {
@@ -55,8 +55,8 @@ export default function Login() {
         className="relative w-full max-w-5xl grid lg:grid-cols-[1.05fr_1fr] bg-white rounded-3xl shadow-2xl overflow-hidden"
       >
         <div className="px-6 sm:px-10 py-10 sm:py-12 flex flex-col justify-center">
-          <p className="text-xs font-semibold tracking-[0.18em] uppercase text-ejc-blue">
-            Minibox EJC
+          <p className="font-pixel-mono text-sm font-semibold tracking-[0.18em] uppercase text-ejc-blue">
+            Minibox · GAMEBOX 2026
           </p>
           <h1 className="font-display text-3xl sm:text-4xl font-bold text-ejc-primary mt-2 leading-tight tracking-tight">
             Bem-vindo de volta
@@ -126,22 +126,24 @@ export default function Login() {
           </p>
         </div>
 
-        <div className="relative hidden lg:flex items-center justify-center bg-gradient-to-br from-ejc-primary to-[#0a0a3d] p-10 overflow-hidden">
+        <div className="relative hidden lg:flex items-center justify-center bg-gradient-to-br from-ejc-primary to-[#0a0a3d] bg-arcade-dots p-10 overflow-hidden">
           <div className="absolute top-8 left-8 flex gap-1.5" aria-hidden>
             <span className="h-2 w-2 rounded-full bg-ejc-yellow" />
+            <span className="h-2 w-2 rounded-full bg-ejc-orange" />
+            <span className="h-2 w-2 rounded-full bg-ejc-purple" />
             <span className="h-2 w-2 rounded-full bg-ejc-blue" />
             <span className="h-2 w-2 rounded-full bg-ejc-green" />
             <span className="h-2 w-2 rounded-full bg-ejc-red" />
           </div>
-          <motion.img
-            src="/logo-ejc1.png"
-            alt="Logo EJC"
-            className="relative max-w-[280px] w-full drop-shadow-[0_18px_40px_rgba(0,0,0,0.35)]"
+          <motion.div
+            className="relative drop-shadow-[0_18px_40px_rgba(0,0,0,0.35)]"
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.5, delay: 0.15 }}
-          />
-          <p className="absolute bottom-8 left-8 right-8 text-white/70 text-xs tracking-wide leading-relaxed">
+          >
+            <GameboxWordmark size="lg" withMascots />
+          </motion.div>
+          <p className="absolute bottom-8 left-8 right-8 text-white/70 text-xs tracking-wide leading-relaxed text-center">
             Encontro de Jovens com Cristo — Trindade.
           </p>
         </div>

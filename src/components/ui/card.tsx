@@ -7,7 +7,7 @@ export const Card = forwardRef<HTMLDivElement, HTMLAttributes<HTMLDivElement>>(
       <div
         ref={ref}
         className={cn(
-          "bg-ejc-surface rounded-2xl border border-ejc-border/60 shadow-[0_2px_8px_rgba(15,23,42,0.04)]",
+          "bg-ejc-surface rounded-xl border-2 border-black shadow-[3px_3px_0_0_#0A0A0A]",
           "transition-shadow duration-200",
           className,
         )}

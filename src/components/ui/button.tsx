@@ -1,6 +1,6 @@
 import { forwardRef, type ButtonHTMLAttributes } from "react";
-import { Loader2 } from "lucide-react";
 import { cn } from "../../lib/cn";
+import { PacmanSpinner } from "./pacman-icon";
 
 type Variant = "primary" | "secondary" | "ghost" | "outline" | "danger" | "success";
 type Size = "sm" | "md" | "lg" | "icon";
@@ -12,9 +12,14 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   fullWidth?: boolean;
 }
 
+// Bordas duras + sombra offset em preto: tratamento "botão de fliperama" (tema
+// GAMEBOX). Ghost/outline ficam de fora de propósito — servem para ações
+// terciárias que não devem competir visualmente com os botões "sólidos".
+const PIXEL = "border-2 border-black shadow-[3px_3px_0_0_#0A0A0A] active:shadow-[1px_1px_0_0_#0A0A0A] active:translate-x-[2px] active:translate-y-[2px]";
+
 const VARIANTS: Record<Variant, string> = {
   primary:
-    "bg-ejc-primary text-white shadow-sm hover:bg-ejc-primary-hover active:scale-[0.98]",
+    cn("bg-ejc-primary text-white hover:bg-ejc-primary-hover", PIXEL),
   secondary:
     "bg-ejc-bg text-ejc-primary border border-ejc-border hover:bg-white hover:border-ejc-primary/30",
   ghost:
@@ -22,9 +27,9 @@ const VARIANTS: Record<Variant, string> = {
   outline:
     "bg-transparent text-ejc-primary border border-ejc-primary/40 hover:bg-ejc-primary hover:text-white",
   danger:
-    "bg-ejc-red text-white shadow-sm hover:brightness-110 active:scale-[0.98]",
+    cn("bg-ejc-red text-white hover:brightness-110", PIXEL),
   success:
-    "bg-ejc-green text-white shadow-sm hover:brightness-110 active:scale-[0.98]",
+    cn("bg-ejc-green text-white hover:brightness-110", PIXEL),
 };
 
 const SIZES: Record<Size, string> = {
@@ -57,7 +62,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button
         "inline-flex items-center justify-center font-semibold whitespace-nowrap select-none",
         "transition-[background-color,color,transform,box-shadow,filter] duration-150 ease-out",
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ejc-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-ejc-bg",
-        "disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100",
+        "disabled:opacity-50 disabled:cursor-not-allowed disabled:active:translate-x-0 disabled:active:translate-y-0",
         VARIANTS[variant],
         SIZES[size],
         fullWidth && "w-full",
@@ -65,7 +70,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button
       )}
       {...rest}
     >
-      {loading && <Loader2 className="h-4 w-4 animate-spin" aria-hidden />}
+      {loading && <PacmanSpinner className="text-[1.1em]" />}
       {children}
     </button>
   );

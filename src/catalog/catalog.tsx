@@ -14,6 +14,7 @@ import {
   Card,
   EmptyState,
   Input,
+  PageHeading,
   Skeleton,
 } from "../components/ui";
 import { cn } from "../lib/cn";
@@ -120,12 +121,7 @@ export default function Catalog() {
 
       <main className="max-w-6xl mx-auto px-4 pt-[88px] pb-12 md:px-6 lg:pt-[100px]">
         <header className="mb-6">
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-ejc-blue">
-            Minibox EJC
-          </p>
-          <h1 className="font-display text-2xl sm:text-3xl font-bold text-ejc-primary mt-1 tracking-tight">
-            Catálogo
-          </h1>
+          <PageHeading kicker="Minibox EJC" title="Catálogo" />
           <p className="text-ejc-muted text-sm mt-1">
             Explore todos os produtos disponíveis. Filtre por categoria ou busque pelo nome.
           </p>

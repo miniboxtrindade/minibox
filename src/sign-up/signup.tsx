@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 import { User, Mail, Lock, ArrowRight, Eye, EyeOff } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useToast } from '../components/ui/toast';
-import { Button, Input } from '../components/ui';
+import { Button, Input, GameboxWordmark } from '../components/ui';
 import { friendlyError } from '../lib/errors';
 
 export default function SignUp() {
@@ -63,21 +63,23 @@ export default function SignUp() {
         transition={{ duration: 0.4, ease: 'easeOut' }}
         className="relative w-full max-w-5xl grid lg:grid-cols-[1fr_1.05fr] bg-white rounded-3xl shadow-2xl overflow-hidden"
       >
-        <div className="relative hidden lg:flex flex-col items-center justify-center bg-gradient-to-br from-ejc-primary to-[#0a0a3d] p-10 overflow-hidden">
+        <div className="relative hidden lg:flex flex-col items-center justify-center bg-gradient-to-br from-ejc-primary to-[#0a0a3d] bg-arcade-dots p-10 overflow-hidden">
           <div className="absolute top-8 left-8 flex gap-1.5" aria-hidden>
             <span className="h-2 w-2 rounded-full bg-ejc-yellow" />
+            <span className="h-2 w-2 rounded-full bg-ejc-orange" />
+            <span className="h-2 w-2 rounded-full bg-ejc-purple" />
             <span className="h-2 w-2 rounded-full bg-ejc-blue" />
             <span className="h-2 w-2 rounded-full bg-ejc-green" />
             <span className="h-2 w-2 rounded-full bg-ejc-red" />
           </div>
-          <motion.img
-            src="/logo-ejc1.png"
-            alt="Logo EJC"
-            className="max-w-[240px] w-full drop-shadow-[0_18px_40px_rgba(0,0,0,0.35)]"
+          <motion.div
+            className="drop-shadow-[0_18px_40px_rgba(0,0,0,0.35)]"
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.5, delay: 0.15 }}
-          />
+          >
+            <GameboxWordmark size="md" withMascots />
+          </motion.div>
           <div className="mt-8 text-white text-center">
             <p className="text-white/60 text-xs tracking-[0.18em] uppercase">Já é cadastrado?</p>
             <Link
@@ -90,7 +92,7 @@ export default function SignUp() {
         </div>
 
         <div className="px-6 sm:px-10 py-10 sm:py-12 flex flex-col justify-center">
-          <p className="text-xs font-semibold tracking-[0.18em] uppercase text-ejc-green">
+          <p className="font-pixel-mono text-sm font-semibold tracking-[0.18em] uppercase text-ejc-green">
             Crie sua conta
           </p>
           <h1 className="font-display text-3xl sm:text-4xl font-bold text-ejc-primary mt-2 leading-tight tracking-tight">

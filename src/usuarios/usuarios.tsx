@@ -13,6 +13,7 @@ import {
   Card,
   CardBody,
   EmptyState,
+  PageHeading,
   Skeleton,
 } from "../components/ui";
 
@@ -151,12 +152,7 @@ export default function Usuarios() {
 
       <main className="max-w-4xl mx-auto px-4 pt-[88px] pb-12 md:px-6 lg:pt-[100px]">
         <header className="mb-6">
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-ejc-blue">
-            Administração
-          </p>
-          <h1 className="font-display text-2xl sm:text-3xl font-bold text-ejc-primary mt-1 tracking-tight">
-            Usuários
-          </h1>
+          <PageHeading kicker="Administração" title="Usuários" />
           <p className="text-ejc-muted text-sm mt-1">
             Promova outros usuários a administrador ou rebaixe a operador de caixa.
           </p>

@@ -17,7 +17,7 @@ import {
 } from "lucide-react";
 import Navbar from "../components/navbar";
 import { supabase, type Client, type Transaction } from "../lib/supabase";
-import { Badge, Button, Card, CardBody, EmptyState, Input, Skeleton } from "../components/ui";
+import { Badge, Button, Card, CardBody, EmptyState, Input, PageHeading, Skeleton } from "../components/ui";
 import { useToast } from "../components/ui/toast";
 import { useModal } from "../lib/modal";
 import { friendlyError } from "../lib/errors";
@@ -371,12 +371,7 @@ const Dashboard = () => {
       <main className="max-w-6xl mx-auto px-4 pt-[88px] pb-12 md:px-6 lg:pt-[100px]">
         <header className="mb-6 flex items-start justify-between gap-3">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-ejc-blue">
-              Painel administrativo
-            </p>
-            <h1 className="font-display text-2xl sm:text-3xl font-bold text-ejc-primary mt-1 tracking-tight">
-              Visão geral
-            </h1>
+            <PageHeading kicker="Painel administrativo" title="Visão geral" />
             <p className="text-ejc-muted text-sm mt-1">
               Indicadores do minibox atualizados em tempo real.
             </p>

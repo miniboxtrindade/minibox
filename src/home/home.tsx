@@ -27,6 +27,7 @@ import {
   CardBody,
   EmptyState,
   Input,
+  PageHeading,
   Sheet,
   Skeleton,
 } from "../components/ui";
@@ -256,12 +257,7 @@ export default function Home() {
 
       <main className="max-w-6xl mx-auto px-4 pt-[88px] pb-32 md:px-6 lg:pt-[100px] lg:pb-12">
         <header className="mb-5">
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-ejc-blue">
-            Início
-          </p>
-          <h1 className="font-display text-2xl sm:text-3xl font-bold text-ejc-primary mt-1 tracking-tight">
-            Nova venda
-          </h1>
+          <PageHeading kicker="Início" title="Nova venda" />
         </header>
 
         <form onSubmit={buscarCliente} className="flex gap-2 mb-4">

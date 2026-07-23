@@ -15,6 +15,7 @@ import {
   CardTitle,
   CardDescription,
   Input,
+  PageHeading,
 } from '../components/ui';
 import { TransactionHistory } from './transaction-history';
 import { cn } from '../lib/cn';
@@ -170,12 +171,7 @@ const Cliente = () => {
       <main className="max-w-3xl mx-auto px-4 pt-[88px] pb-12 md:px-6 lg:pt-[100px]">
 
         <header className="mb-6">
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-ejc-blue">
-            Caixa
-          </p>
-          <h1 className="font-display text-2xl sm:text-3xl font-bold text-ejc-primary mt-1 tracking-tight">
-            Cliente
-          </h1>
+          <PageHeading kicker="Caixa" title="Cliente" />
           <p className="text-ejc-muted text-sm mt-1">
             Informe o código do crachá para ver saldo, recarregar ou debitar.
           </p>

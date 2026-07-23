@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "../lib/auth";
 import { cn } from "../lib/cn";
+import { PacmanIcon } from "./ui/pacman-icon";
 
 interface NavItem {
   path: string;
@@ -72,11 +73,11 @@ export default function Navbar() {
             onClick={() => navigate("/home")}
             className="flex items-center gap-2.5 shrink-0 text-white"
           >
-            <span className="h-9 w-9 sm:h-10 sm:w-10 rounded-lg bg-white flex items-center justify-center overflow-hidden ring-1 ring-white/30">
-              <img src="/logo-ejc1.png" alt="EJC" className="w-7 h-7 sm:w-8 sm:h-8 object-contain" />
+            <span className="h-9 w-9 sm:h-10 sm:w-10 rounded-lg bg-white flex items-center justify-center overflow-hidden ring-1 ring-white/30 border-2 border-black">
+              <PacmanIcon size={22} />
             </span>
             <span className="font-display font-bold text-[15px] sm:text-[16px] tracking-tight text-white whitespace-nowrap">
-              Minibox <span className="text-ejc-yellow">EJC</span>
+              Minibox <span className="text-ejc-yellow">GAMEBOX</span>
             </span>
           </button>
 
@@ -148,6 +149,8 @@ export default function Navbar() {
 
         <div className="absolute bottom-0 inset-x-0 h-[3px] flex" aria-hidden>
           <span className="flex-1 bg-ejc-yellow" />
+          <span className="flex-1 bg-ejc-orange" />
+          <span className="flex-1 bg-ejc-purple" />
           <span className="flex-1 bg-ejc-blue" />
           <span className="flex-1 bg-ejc-green" />
           <span className="flex-1 bg-ejc-red" />

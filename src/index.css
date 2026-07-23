@@ -9,6 +9,9 @@
   --color-ejc-blue: #009FE3;
   --color-ejc-green: #00A859;
   --color-ejc-red: #E30613;
+  --color-ejc-orange: #FF8C1A;
+  --color-ejc-purple: #8B2FC9;
+  --color-ejc-pink: #FF9FD6;
   --color-ejc-primary: #151551;
   --color-ejc-primary-hover: #1F1FA8;
   --color-ejc-surface: #FFFFFF;
@@ -19,6 +22,8 @@
 
   --font-sans: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
   --font-display: 'Manrope', 'Inter', sans-serif;
+  --font-pixel: 'Press Start 2P', 'Manrope', sans-serif;
+  --font-pixel-mono: 'VT323', 'Inter', monospace;
 
   --radius-ejc-sm: 6px;
   --radius-ejc-md: 10px;
@@ -45,6 +50,9 @@
   --ejc-blue: #009FE3;
   --ejc-green: #00A859;
   --ejc-red: #E30613;
+  --ejc-orange: #FF8C1A;
+  --ejc-purple: #8B2FC9;
+  --ejc-pink: #FF9FD6;
   --ejc-black: #0A0A0A;
   --ejc-white: #FFFFFF;
   --ejc-bg: #F4F6F9;
@@ -94,7 +102,66 @@
 }
 
 /* =========================
-   MODAL (EJC)
+   ARCADE — fundo de pontinhos (usar apenas em telas de entrada/hero,
+   nunca atrás de tabelas ou listas de dados)
+========================= */
+
+.bg-arcade-dots {
+  background-image: radial-gradient(rgba(255, 255, 255, 0.16) 2px, transparent 2px);
+  background-size: 22px 22px;
+}
+
+/* =========================
+   PACMAN SPINNER — substitui o Loader2 em botões carregando
+========================= */
+
+.pacman-spinner {
+  position: relative;
+  width: 1em;
+  height: 1em;
+  flex: none;
+}
+
+.pacman-spinner::before,
+.pacman-spinner::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  width: 0;
+  height: 0;
+  border-style: solid;
+}
+
+.pacman-spinner::before {
+  top: 0;
+  border-width: 0.5em 0.5em 0 0.5em;
+  border-color: currentColor transparent transparent transparent;
+  border-radius: 0.5em 0.5em 0 0;
+  transform-origin: 0.5em 0.5em;
+  animation: pacman-chomp-top 0.6s infinite ease-in-out;
+}
+
+.pacman-spinner::after {
+  top: 0.5em;
+  border-width: 0 0.5em 0.5em 0.5em;
+  border-color: transparent transparent currentColor transparent;
+  border-radius: 0 0 0.5em 0.5em;
+  transform-origin: 0.5em 0;
+  animation: pacman-chomp-bottom 0.6s infinite ease-in-out;
+}
+
+@keyframes pacman-chomp-top {
+  0%, 100% { transform: rotate(0deg); }
+  50%      { transform: rotate(-32deg); }
+}
+
+@keyframes pacman-chomp-bottom {
+  0%, 100% { transform: rotate(0deg); }
+  50%      { transform: rotate(32deg); }
+}
+
+/* =========================
+   MODAL (EJC) — moldura pixel-art
 ========================= */
 
 .ejc-modal-backdrop {
@@ -118,10 +185,11 @@
   width: 100%;
   max-width: 380px;
   background: var(--ejc-white);
-  border-radius: var(--ejc-radius-lg);
+  border-radius: var(--ejc-radius-md);
+  border: 3px solid var(--ejc-black);
   padding: 28px 24px 22px;
   text-align: center;
-  box-shadow: var(--ejc-shadow-lg);
+  box-shadow: 6px 6px 0 0 var(--ejc-black);
   position: relative;
   animation: ejc-pop-in 0.22s ease-out;
 }
@@ -187,8 +255,24 @@
   font-size: 15px;
   min-height: 46px;
   cursor: pointer;
-  transition: filter 0.15s, background 0.15s;
-  border: 1px solid transparent;
+  transition: filter 0.15s, background 0.15s, transform 0.1s;
+  border: 2px solid transparent;
+}
+
+.ejc-modal__btn--primary,
+.ejc-modal__btn--success,
+.ejc-modal__btn--error,
+.ejc-modal__btn--warning {
+  border-color: var(--ejc-black);
+  box-shadow: 3px 3px 0 0 var(--ejc-black);
+}
+
+.ejc-modal__btn--primary:active,
+.ejc-modal__btn--success:active,
+.ejc-modal__btn--error:active,
+.ejc-modal__btn--warning:active {
+  box-shadow: 1px 1px 0 0 var(--ejc-black);
+  transform: translate(2px, 2px);
 }
 
 .ejc-modal__btn--ghost {
