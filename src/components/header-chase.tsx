@@ -4,6 +4,7 @@ import { PacmanIcon } from "./ui/pacman-icon";
 import { GhostIcon, GHOST_COLORS } from "./ui/ghost-icon";
 
 const CHASE_GHOSTS = [GHOST_COLORS[2], GHOST_COLORS[0], GHOST_COLORS[1]];
+const GHOST_Y_JITTER = [-4, 3, -2];
 
 interface Path {
   start: number;
@@ -45,6 +46,29 @@ function useTravelPath(
   return path;
 }
 
+// Fade-in no começo do ciclo (não "aparece do nada") e fade-out perto do fim
+// (some atrás da logo). Tudo normalizado em fração de `duration`.
+function fadeKeyframes(hideAt: number) {
+  return { times: [0, 0.06, hideAt, 1], values: [0, 1, 1, 0] };
+}
+
+// Um "pulso" de escala no instante exato em que o Pac-Man alcança cada
+// bolinha — é a única forma de simular a mordida com um sprite estático.
+function bitePulseKeyframes(eatFractions: number[]) {
+  if (eatFractions.length === 0) return { times: [0, 1], values: [1, 1] };
+  const half = 0.006;
+  const times: number[] = [0];
+  const values: number[] = [1];
+  for (const f of eatFractions) {
+    const before = Math.max(f - half, times[times.length - 1] + 0.001);
+    times.push(before, f);
+    values.push(1, 1.22);
+  }
+  times.push(Math.min(eatFractions[eatFractions.length - 1] + half, 0.999), 1);
+  values.push(1, 1);
+  return { times, values };
+}
+
 interface ChaseProps {
   path: Path;
   duration: number;
@@ -55,12 +79,13 @@ interface ChaseProps {
 
 function Chase({ path, duration, pauseAfter, ghostColors, dotCount }: ChaseProps) {
   const distance = path.end - path.start;
-  const totalCycle = duration + pauseAfter;
-
   const dots = Array.from({ length: dotCount }, (_, i) => {
     const frac = (i + 1) / (dotCount + 1);
-    return { x: path.start + distance * frac, eatenAt: (duration * frac) / totalCycle };
+    return { x: path.start + distance * frac, frac };
   });
+  const eatFractions = dots.map((d) => d.frac);
+  const pacFade = fadeKeyframes(0.88);
+  const pacBite = bitePulseKeyframes(eatFractions);
 
   return (
     <div className="relative w-full h-full">
@@ -69,52 +94,58 @@ function Chase({ path, duration, pauseAfter, ghostColors, dotCount }: ChaseProps
           key={i}
           className="absolute top-1/2 h-1.5 w-1.5 rounded-full bg-ejc-yellow"
           style={{ left: d.x, marginTop: -3 }}
-          animate={{ opacity: [1, 1, 0, 0] }}
+          animate={{ opacity: [1, 1, 1, 0, 0], scale: [1, 1, 1.7, 0, 0] }}
           transition={{
-            duration: totalCycle,
-            times: [0, Math.max(d.eatenAt - 0.015, 0), d.eatenAt, 1],
+            duration,
+            times: [0, Math.max(d.frac - 0.01, 0), d.frac, Math.min(d.frac + 0.02, 0.999), 1],
             repeat: Infinity,
+            repeatDelay: pauseAfter,
             ease: "linear",
           }}
         />
       ))}
 
       {ghostColors.map((color, i) => {
-        const offset = (i + 1) * 20;
+        const fade = fadeKeyframes(0.82);
         return (
           <motion.div
             key={color}
-            className="absolute top-1/2 -translate-y-1/2"
-            animate={{
-              x: [path.start - offset, path.end - offset],
-              opacity: [1, 1, 0],
-            }}
+            className="absolute top-1/2"
+            style={{ y: GHOST_Y_JITTER[i % GHOST_Y_JITTER.length] }}
+            animate={{ x: [path.start, path.end], opacity: fade.values }}
             transition={{
-              duration,
-              delay: 0.12 * (i + 1),
-              times: [0, 0.85, 1],
-              repeat: Infinity,
-              repeatDelay: pauseAfter,
-              ease: "easeInOut",
+              x: { duration, delay: 0.18 * (i + 1), repeat: Infinity, repeatDelay: pauseAfter, ease: "linear" },
+              opacity: {
+                duration,
+                delay: 0.18 * (i + 1),
+                times: fade.times,
+                repeat: Infinity,
+                repeatDelay: pauseAfter,
+                ease: "linear",
+              },
             }}
           >
-            <GhostIcon size={18} color={color} />
+            <div className="-translate-y-1/2">
+              <GhostIcon size={18} color={color} />
+            </div>
           </motion.div>
         );
       })}
 
       <motion.div
         className="absolute top-1/2 -translate-y-1/2"
-        animate={{ x: [path.start, path.end], opacity: [1, 1, 0] }}
+        animate={{ x: [path.start, path.end], opacity: pacFade.values, scale: pacBite.values }}
         transition={{
-          duration,
-          times: [0, 0.9, 1],
-          repeat: Infinity,
-          repeatDelay: pauseAfter,
-          ease: "linear",
+          x: { duration, repeat: Infinity, repeatDelay: pauseAfter, ease: "linear" },
+          opacity: { duration, times: pacFade.times, repeat: Infinity, repeatDelay: pauseAfter, ease: "linear" },
+          scale: { duration, times: pacBite.times, repeat: Infinity, repeatDelay: pauseAfter, ease: "easeOut" },
         }}
       >
-        <PacmanIcon size={24} />
+        {/* a arte original olha para a direita; a travessia é da direita
+            para a esquerda, então espelhamos pra ele "olhar" pra onde anda */}
+        <div className="-scale-x-100">
+          <PacmanIcon size={24} />
+        </div>
       </motion.div>
     </div>
   );
@@ -123,19 +154,18 @@ function Chase({ path, duration, pauseAfter, ghostColors, dotCount }: ChaseProps
 interface HeaderChaseProps {
   containerRef: RefObject<HTMLElement | null>;
   logoRef: RefObject<HTMLElement | null>;
-  homeRef: RefObject<HTMLElement | null>;
-  menuButtonRef: RefObject<HTMLElement | null>;
+  startRef: RefObject<HTMLElement | null>;
+  mobileStartRef: RefObject<HTMLElement | null>;
 }
 
-// Easter egg: o Pac-Man foge dos fantasmas atravessando o header e se
-// escondendo atrás da logo. Em telas grandes ele sai de trás do botão
-// "Home" da navegação, perseguido pelos fantasmas; no mobile atravessa o
-// header inteiro comendo as bolinhas clássicas (sem fantasmas, não há
-// referência de onde eles viriam).
-export function HeaderChase({ containerRef, logoRef, homeRef, menuButtonRef }: HeaderChaseProps) {
+// Easter egg: o Pac-Man foge dos 3 fantasmas atravessando o header inteiro
+// (por trás dos botões, que ficam na frente por ordem de DOM) até se
+// esconder atrás da logo. Desktop começa atrás do chip do usuário; mobile
+// começa atrás do botão de menu e ainda "come" bolinhas pelo caminho.
+export function HeaderChase({ containerRef, logoRef, startRef, mobileStartRef }: HeaderChaseProps) {
   const reduceMotion = useReducedMotion();
-  const desktopPath = useTravelPath(containerRef, homeRef, logoRef);
-  const mobilePath = useTravelPath(containerRef, menuButtonRef, logoRef);
+  const desktopPath = useTravelPath(containerRef, startRef, logoRef);
+  const mobilePath = useTravelPath(containerRef, mobileStartRef, logoRef);
 
   if (reduceMotion) return null;
 
@@ -146,7 +176,7 @@ export function HeaderChase({ containerRef, logoRef, homeRef, menuButtonRef }: H
           className="hidden lg:block absolute inset-y-0 left-0 right-0 overflow-hidden pointer-events-none"
           aria-hidden
         >
-          <Chase path={desktopPath} duration={2.2} pauseAfter={8.5} ghostColors={CHASE_GHOSTS} dotCount={0} />
+          <Chase path={desktopPath} duration={3.2} pauseAfter={8} ghostColors={CHASE_GHOSTS} dotCount={0} />
         </div>
       )}
       {mobilePath && (
@@ -154,7 +184,7 @@ export function HeaderChase({ containerRef, logoRef, homeRef, menuButtonRef }: H
           className="lg:hidden absolute inset-y-0 left-0 right-0 overflow-hidden pointer-events-none"
           aria-hidden
         >
-          <Chase path={mobilePath} duration={2.8} pauseAfter={9} ghostColors={[]} dotCount={9} />
+          <Chase path={mobilePath} duration={2.8} pauseAfter={8.5} ghostColors={CHASE_GHOSTS} dotCount={9} />
         </div>
       )}
     </>

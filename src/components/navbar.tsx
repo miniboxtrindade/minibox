@@ -42,7 +42,7 @@ export default function Navbar() {
 
   const rowRef = useRef<HTMLDivElement>(null);
   const logoRef = useRef<HTMLButtonElement>(null);
-  const homeLinkRef = useRef<HTMLAnchorElement>(null);
+  const userChipRef = useRef<HTMLDivElement>(null);
   const menuButtonRef = useRef<HTMLButtonElement>(null);
 
   const isAdmin = profile?.role === "admin";
@@ -80,8 +80,8 @@ export default function Navbar() {
           <HeaderChase
             containerRef={rowRef}
             logoRef={logoRef}
-            homeRef={homeLinkRef}
-            menuButtonRef={menuButtonRef}
+            startRef={userChipRef}
+            mobileStartRef={menuButtonRef}
           />
 
           <button
@@ -102,7 +102,6 @@ export default function Navbar() {
               return (
                 <NavLink
                   key={item.path}
-                  ref={item.path === "/home" ? homeLinkRef : undefined}
                   to={item.path}
                   className={({ isActive }) =>
                     cn(
@@ -133,7 +132,10 @@ export default function Navbar() {
 
           <div className="hidden lg:flex items-center gap-3 justify-end">
             <div className="flex items-center gap-2 text-white">
-              <div className="h-9 w-9 rounded-full bg-white/15 flex items-center justify-center font-bold text-[12px] text-white">
+              <div
+                ref={userChipRef}
+                className="relative z-10 h-9 w-9 rounded-full bg-white/15 flex items-center justify-center font-bold text-[12px] text-white"
+              >
                 {iniciais}
               </div>
               <div className="leading-tight">
