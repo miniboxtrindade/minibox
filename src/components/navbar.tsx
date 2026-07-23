@@ -96,41 +96,47 @@ export default function Navbar() {
             <GameboxWordmark className="h-8 sm:h-9" />
           </button>
 
-          <div className="relative z-10 hidden lg:flex items-center justify-center gap-1">
-            {items.map((item) => {
-              const Icon = item.icon;
-              return (
-                <NavLink
-                  key={item.path}
-                  to={item.path}
-                  className={({ isActive }) =>
-                    cn(
-                      "relative inline-flex items-center gap-2 px-3 h-10 rounded-lg text-sm font-medium transition-colors whitespace-nowrap",
-                      isActive
-                        ? "text-white bg-white/15"
-                        : "text-white hover:bg-white/10",
-                    )
-                  }
-                >
-                  {({ isActive }) => (
-                    <>
-                      <Icon size={15} className="shrink-0" />
-                      <span>{item.label}</span>
-                      {isActive && (
-                        <motion.span
-                          layoutId="nav-indicator"
-                          className="absolute -bottom-px left-3 right-3 h-0.5 rounded-full bg-ejc-yellow"
-                          transition={{ type: "spring", stiffness: 380, damping: 30 }}
-                        />
-                      )}
-                    </>
-                  )}
-                </NavLink>
-              );
-            })}
+          <div className="relative z-10 hidden lg:flex items-center justify-center">
+            {/* Fundo opaco (mesma cor do header) do tamanho exato do grupo de
+                botões — impede que a animação do header (HeaderChase) fique
+                visível "por cima": ela fica de fato invisível atrás deste
+                painel, só reaparecendo nos espaços vazios ao redor dele. */}
+            <div className="relative bg-ejc-primary flex items-center gap-1">
+              {items.map((item) => {
+                const Icon = item.icon;
+                return (
+                  <NavLink
+                    key={item.path}
+                    to={item.path}
+                    className={({ isActive }) =>
+                      cn(
+                        "relative inline-flex items-center gap-2 px-3 h-10 rounded-lg text-sm font-medium transition-colors whitespace-nowrap",
+                        isActive
+                          ? "text-white bg-white/15"
+                          : "text-white hover:bg-white/10",
+                      )
+                    }
+                  >
+                    {({ isActive }) => (
+                      <>
+                        <Icon size={15} className="shrink-0" />
+                        <span>{item.label}</span>
+                        {isActive && (
+                          <motion.span
+                            layoutId="nav-indicator"
+                            className="absolute -bottom-px left-3 right-3 h-0.5 rounded-full bg-ejc-yellow"
+                            transition={{ type: "spring", stiffness: 380, damping: 30 }}
+                          />
+                        )}
+                      </>
+                    )}
+                  </NavLink>
+                );
+              })}
+            </div>
           </div>
 
-          <div className="relative z-10 hidden lg:flex items-center gap-3 justify-end">
+          <div className="relative z-10 hidden lg:flex items-center gap-3 justify-end bg-ejc-primary">
             <div className="flex items-center gap-2 text-white">
               <div
                 ref={userChipRef}

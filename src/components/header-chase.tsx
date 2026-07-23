@@ -1,14 +1,29 @@
-import { useEffect, useRef, useState, type RefObject } from "react";
+import { useEffect, useState, type RefObject } from "react";
 import { motion, useReducedMotion } from "framer-motion";
+import { cn } from "../lib/cn";
 import { PacmanIcon } from "./ui/pacman-icon";
 import { GhostIcon, GHOST_COLORS } from "./ui/ghost-icon";
 
 // Os 6 fantasmas da logo, na mesma ordem em que aparecem nela.
 const CHASE_GHOSTS = GHOST_COLORS;
-// Espaçamento em pixels (não em segundos) — assim o espaço visual entre eles
-// não muda quando a velocidade da travessia é ajustada.
-const GHOST_GAP_PX = 30; // distância do Pac-Man até o primeiro fantasma
-const GHOST_STEP_PX = 26; // espaço entre um fantasma e o próximo
+// Espaçamento em pixels (não em segundos) — o espaço visual entre eles não
+// muda quando a velocidade da travessia é ajustada.
+const GHOST_GAP_PX = 34; // distância do Pac-Man até o primeiro fantasma
+const GHOST_STEP_PX = 30; // espaço entre um fantasma e o próximo
+
+// Velocidade e pausa compartilhadas entre mobile e desktop — a duração de
+// cada travessia é derivada da distância real (path), então os dois
+// breakpoints têm exatamente a mesma sensação de ritmo.
+const TRAVEL_SPEED_PX_S = 70;
+const PAUSE_AFTER_S = 7;
+
+const PACMAN_SIZE = 30;
+const GHOST_SIZE = 22;
+const DOT_SIZE = 9;
+const DOT_COLOR_CLASS = "bg-yellow-100";
+
+const APPEAR_AT = 0.06;
+const HIDE_AT = 0.9;
 
 interface Path {
   start: number;
@@ -50,34 +65,29 @@ function useTravelPath(
   return path;
 }
 
-// Uma única linha do tempo (0 a 1, fração de `duration`) compartilhada por
-// x/opacity/scale — evita qualquer dessincronia entre propriedades animadas
-// separadamente. Começa e termina invisível (fade-in, não "aparece do
-// nada"; fade-out, "esconde atrás da logo"). Como opacity/scale começam e
-// terminam no mesmo valor (0 e 1 respectivamente), a timeline funciona
-// igual quando tocada de trás pra frente (repeatType: mirror).
-function buildTimeline(path: Path, dotFractions: number[]) {
-  const distance = path.end - path.start;
-  const hideAt = 0.9;
-
-  const times: number[] = [0, 0.06];
+// Timeline de uma travessia (sempre "de -> até", nunca invertida pelo
+// Framer): fade-in ao sair do ponto de partida, "mordidas" nas frações
+// informadas, fade-out ao se aproximar do destino.
+function buildMainTimeline(from: number, to: number, biteFractions: number[]) {
+  const distance = to - from;
+  const times: number[] = [0, APPEAR_AT];
   const opacity: number[] = [0, 1];
   const scale: number[] = [1, 1];
 
-  for (const frac of dotFractions) {
-    if (frac <= 0.08 || frac >= hideAt - 0.05) continue;
+  for (const frac of biteFractions) {
+    if (frac <= APPEAR_AT + 0.02 || frac >= HIDE_AT - 0.05) continue;
     const before = Math.max(frac - 0.006, times[times.length - 1] + 0.004);
-    const after = Math.min(frac + 0.006, hideAt - 0.02);
+    const after = Math.min(frac + 0.006, HIDE_AT - 0.02);
     times.push(before, frac, after);
     opacity.push(1, 1, 1);
     scale.push(1, 1.22, 1);
   }
 
-  times.push(hideAt, 1);
+  times.push(HIDE_AT, 1);
   opacity.push(1, 0);
   scale.push(1, 1);
 
-  const x = times.map((t) => path.start + distance * t);
+  const x = times.map((t) => from + distance * t);
   return { times, x, opacity, scale };
 }
 
@@ -94,48 +104,44 @@ function buildDotTimeline(frac: number) {
 
 interface ChaseProps {
   path: Path;
-  duration: number;
-  pauseAfter: number;
   ghostColors: string[];
   dotCount: number;
 }
 
-function Chase({ path, duration, pauseAfter, ghostColors, dotCount }: ChaseProps) {
-  const distance = path.end - path.start;
-  const speed = Math.abs(distance) / duration; // px/s
+// Cada travessia ("lap") é montada do zero com um sentido explícito
+// (par = ida, ímpar = volta), nunca reaproveitando/invertendo a timeline
+// anterior. Isso garante, em qualquer direção: mesma velocidade, mesma
+// ordem de "mordida" nas bolinhas e mesmo espaçamento dos fantasmas —
+// problemas que o `repeatType: "mirror"` do Framer não resolve de forma
+// confiável quando a timeline tem eventos assimétricos no tempo (uma
+// bolinha comida fica invisível para sempre depois, o que não é
+// simetricamente reversível).
+function Chase({ path, ghostColors, dotCount }: ChaseProps) {
+  const [cycle, setCycle] = useState(0);
+  const forward = cycle % 2 === 0;
+  const from = forward ? path.start : path.end;
+  const to = forward ? path.end : path.start;
+  const distance = to - from;
+  const duration = Math.max(Math.abs(distance) / TRAVEL_SPEED_PX_S, 0.5);
+  const facingLeft = distance < 0; // a arte original olha para a direita
 
-  // Direção do Pac-Man (a arte original olha pra direita). Detectada em
-  // tempo real pelo sentido do movimento, pra ficar certa tanto no trecho
-  // "de ida" quanto no espelhado (repeatType: mirror faz o Pac-Man
-  // atravessar ora direita->esquerda, ora esquerda->direita).
-  const facingRef = useRef<"left" | "right">("left");
-  const lastXRef = useRef<number | null>(null);
-  const [, bumpFacing] = useState(0);
+  const maxGhostDelay = ghostColors.length
+    ? (GHOST_GAP_PX + GHOST_STEP_PX * (ghostColors.length - 1)) / TRAVEL_SPEED_PX_S
+    : 0;
+  const totalCycleTime = duration + maxGhostDelay + PAUSE_AFTER_S;
 
-  const handlePacmanUpdate = (latest: { x?: number }) => {
-    const x = latest.x;
-    if (typeof x !== "number") return;
-    if (lastXRef.current !== null) {
-      const dx = x - lastXRef.current;
-      if (Math.abs(dx) > 0.02) {
-        const next = dx < 0 ? "left" : "right";
-        if (next !== facingRef.current) {
-          facingRef.current = next;
-          bumpFacing((n) => n + 1);
-        }
-      }
-    }
-    lastXRef.current = x;
-  };
+  useEffect(() => {
+    const timeout = window.setTimeout(() => setCycle((c) => c + 1), totalCycleTime * 1000);
+    return () => window.clearTimeout(timeout);
+  }, [cycle, totalCycleTime]);
 
   const dots = Array.from({ length: dotCount }, (_, i) => {
     const frac = (i + 1) / (dotCount + 1);
-    return { frac, x: path.start + distance * frac };
+    return { frac, x: from + distance * frac };
   });
-  const dotFractions = dots.map((d) => d.frac);
-
-  const pacTimeline = buildTimeline(path, dotFractions);
-  const ghostTimeline = buildTimeline(path, []);
+  const biteFractions = dots.map((d) => d.frac);
+  const mainTimeline = buildMainTimeline(from, to, biteFractions);
+  const ghostTimeline = buildMainTimeline(from, to, []);
 
   return (
     <div className="relative w-full h-full">
@@ -143,59 +149,40 @@ function Chase({ path, duration, pauseAfter, ghostColors, dotCount }: ChaseProps
         const dt = buildDotTimeline(d.frac);
         return (
           <motion.span
-            key={i}
-            className="absolute top-1/2 h-1.5 w-1.5 rounded-full bg-ejc-yellow"
-            style={{ left: d.x, marginTop: -3 }}
+            key={`${cycle}-${i}`}
+            className={cn("absolute top-1/2 rounded-full", DOT_COLOR_CLASS)}
+            style={{ left: d.x, width: DOT_SIZE, height: DOT_SIZE, marginTop: -DOT_SIZE / 2 }}
+            initial={{ opacity: 0, scale: 0.5 }}
             animate={{ opacity: dt.opacity, scale: dt.scale }}
-            transition={{
-              duration,
-              times: dt.times,
-              repeat: Infinity,
-              repeatDelay: pauseAfter,
-              repeatType: "mirror",
-              ease: "linear",
-            }}
+            transition={{ duration, times: dt.times, ease: "linear" }}
           />
         );
       })}
 
       {ghostColors.map((color, i) => {
-        const delay = (GHOST_GAP_PX + GHOST_STEP_PX * i) / speed;
+        const delay = (GHOST_GAP_PX + GHOST_STEP_PX * i) / TRAVEL_SPEED_PX_S;
         return (
           <motion.div
-            key={color}
+            key={`${cycle}-${color}`}
             className="absolute top-1/2 -translate-y-1/2"
+            initial={{ x: from, opacity: 0 }}
             animate={{ x: ghostTimeline.x, opacity: ghostTimeline.opacity }}
-            transition={{
-              duration,
-              delay,
-              times: ghostTimeline.times,
-              repeat: Infinity,
-              repeatDelay: pauseAfter,
-              repeatType: "mirror",
-              ease: "linear",
-            }}
+            transition={{ duration, delay, times: ghostTimeline.times, ease: "linear" }}
           >
-            <GhostIcon size={18} color={color} />
+            <GhostIcon size={GHOST_SIZE} color={color} />
           </motion.div>
         );
       })}
 
       <motion.div
+        key={`${cycle}-pacman`}
         className="absolute top-1/2 -translate-y-1/2"
-        animate={{ x: pacTimeline.x, opacity: pacTimeline.opacity, scale: pacTimeline.scale }}
-        onUpdate={handlePacmanUpdate}
-        transition={{
-          duration,
-          times: pacTimeline.times,
-          repeat: Infinity,
-          repeatDelay: pauseAfter,
-          repeatType: "mirror",
-          ease: "linear",
-        }}
+        initial={{ x: from, opacity: 0, scale: 1 }}
+        animate={{ x: mainTimeline.x, opacity: mainTimeline.opacity, scale: mainTimeline.scale }}
+        transition={{ duration, times: mainTimeline.times, ease: "linear" }}
       >
-        <div className={facingRef.current === "left" ? "-scale-x-100" : ""}>
-          <PacmanIcon size={24} />
+        <div className={facingLeft ? "-scale-x-100" : ""}>
+          <PacmanIcon size={PACMAN_SIZE} />
         </div>
       </motion.div>
     </div>
@@ -210,11 +197,11 @@ interface HeaderChaseProps {
 }
 
 // Easter egg: o Pac-Man foge dos 6 fantasmas atravessando o header inteiro
-// (por trás dos botões — ver z-10 explícito nos elementos de navbar.tsx)
-// até se esconder atrás da logo, e no ciclo seguinte faz o caminho inverso
-// (repeatType: mirror), saindo de trás da logo. Desktop começa atrás do
-// chip do usuário; mobile começa atrás do botão de menu e ainda "come"
-// bolinhas clássicas pelo caminho, com o mesmo efeito no desktop.
+// até se esconder atrás da logo, depois refaz o caminho ao contrário saindo
+// de trás dela. No desktop ele passa por trás dos botões de navegação e do
+// bloco do usuário (que têm um fundo opaco — ver navbar.tsx — só ficando
+// visível nos espaços vazios entre eles); no mobile atravessa livremente,
+// comendo bolinhas clássicas pelo caminho, mesmo efeito usado no desktop.
 export function HeaderChase({ containerRef, logoRef, startRef, mobileStartRef }: HeaderChaseProps) {
   const reduceMotion = useReducedMotion();
   const desktopPath = useTravelPath(containerRef, startRef, logoRef);
@@ -229,7 +216,7 @@ export function HeaderChase({ containerRef, logoRef, startRef, mobileStartRef }:
           className="hidden lg:block absolute inset-y-0 left-0 right-0 overflow-hidden pointer-events-none"
           aria-hidden
         >
-          <Chase path={desktopPath} duration={5.5} pauseAfter={6.5} ghostColors={CHASE_GHOSTS} dotCount={9} />
+          <Chase path={desktopPath} ghostColors={CHASE_GHOSTS} dotCount={9} />
         </div>
       )}
       {mobilePath && (
@@ -237,7 +224,7 @@ export function HeaderChase({ containerRef, logoRef, startRef, mobileStartRef }:
           className="lg:hidden absolute inset-y-0 left-0 right-0 overflow-hidden pointer-events-none"
           aria-hidden
         >
-          <Chase path={mobilePath} duration={3.8} pauseAfter={7.5} ghostColors={CHASE_GHOSTS} dotCount={9} />
+          <Chase path={mobilePath} ghostColors={CHASE_GHOSTS} dotCount={9} />
         </div>
       )}
     </>
